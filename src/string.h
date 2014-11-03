@@ -1,8 +1,8 @@
 /* =============================================================================
- * @file main.c
+ * @file string.h
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Implements the main function.
+ * @date 2 Nov 2014
+ * @brief Structure and functions for symbolic parsing.
  *
  * This file is part of MCC.
  *
@@ -31,34 +31,34 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
-#include <stdio.h>
-
-#include "defs.h"
+#ifndef __STRING_H__
+#define __STRING_H__
 
 /***************************************************************************//**
- * This is executed on startup. It processes the command line arguments to
- * determine the file to compile, and runs through each step.
+ * @struct String
+ *
+ * @brief This structure...
+ *
+ * It does such and such... mention linked list, etc...
  ******************************************************************************/
-int main(int argc, char** argv)
+struct String
 {
-	// the first argument is the compiler
-	// if there is no second argument, there is no file to compile
-	if (argc < 2)
-	{
-		printf("Error: not enough arguments\n");
-		return 0;
-	}
+	size_t size;
+	char* contents;
+	struct String* next;
+};
 
-	// compile the first file
-	// read the contents of the file
-	char* data = read(argv[1]);
-	// parse the file into organized structures
-//	parse(jkjkj, file);
-	// generate assembly
-	char* assembly;
-//	compile(assembly, jkjkj);
-	// write to file
-	write("out.s", data);
+/***************************************************************************//**
+ * @brief Loads a file into a buffer.
+ ******************************************************************************/
+struct String* newString(size_t size);
 
-	return 0;
-}
+struct String* getString(char* array);
+
+void deleteString(struct String* string);
+
+void deleteStringList(struct String* base);
+
+void addString(struct String* dest, struct String* string);
+
+#endif /* __STRING_H__ */

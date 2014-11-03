@@ -1,8 +1,8 @@
 /* =============================================================================
- * @file main.c
+ * @file string.c
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Implements the main function.
+ * @date 2 Nov 2014
+ * @brief Implementation of Symbol related functions.
  *
  * This file is part of MCC.
  *
@@ -31,34 +31,59 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
-#include <stdio.h>
+#include "string.h"
 
-#include "defs.h"
 
 /***************************************************************************//**
- * This is executed on startup. It processes the command line arguments to
- * determine the file to compile, and runs through each step.
+ *
+ * @param argc The number of command line arguments.
+ *
+ * @param argv An array containing the command line arguments.
+ *
+ * @return The error level. 0 means no error.
  ******************************************************************************/
-int main(int argc, char** argv)
+struct String* newString(size_t size)
 {
-	// the first argument is the compiler
-	// if there is no second argument, there is no file to compile
-	if (argc < 2)
+	struct String* string = malloc(sizeof(struct String));
+	string->size = size;
+	string->contents = malloc(size);
+	string->next = NULL;
+	return string;
+}
+
+// copies string to contents
+struct String* getString(char* array)
+{
+	struct String* string = malloc(sizeof(struct String));
+	string->size = strlen(array);
+	string->contents = malloc(string->size);
+	strcpy(contents, array);
+	string->next = NULL;
+	return string;
+}
+
+void deleteString(struct String* string)
+{
+	if (string != NULL)
+		free(string);
+	return;
+}
+
+void deleteStringList(struct String* base)
+{
+	if (base->next != NULL)
+		deleteList(base->next);
+	deleteString(base);
+	return;
+}
+
+// adds to the "next" line, not the "child" line
+void addString(struct String* dest, struct String* string)
+{
+	while (dest->next == NULL)
 	{
-		printf("Error: not enough arguments\n");
-		return 0;
+		dest = dest->next;
 	}
-
-	// compile the first file
-	// read the contents of the file
-	char* data = read(argv[1]);
-	// parse the file into organized structures
-//	parse(jkjkj, file);
-	// generate assembly
-	char* assembly;
-//	compile(assembly, jkjkj);
-	// write to file
-	write("out.s", data);
-
-	return 0;
+	dest->next = string;
+	return;
 }

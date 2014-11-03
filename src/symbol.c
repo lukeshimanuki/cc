@@ -1,8 +1,8 @@
 /* =============================================================================
- * @file main.c
+ * @file symbol.c
  * @author Luke Shimanuki
  * @date 1 Nov 2014
- * @brief Implements the main function.
+ * @brief Implementation of Symbol related functions.
  *
  * This file is part of MCC.
  *
@@ -31,34 +31,49 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
-#include <stdio.h>
+#include "symbol.h"
 
-#include "defs.h"
 
 /***************************************************************************//**
- * This is executed on startup. It processes the command line arguments to
- * determine the file to compile, and runs through each step.
+ *
+ * @param argc The number of command line arguments.
+ *
+ * @param argv An array containing the command line arguments.
+ *
+ * @return The error level. 0 means no error.
  ******************************************************************************/
-int main(int argc, char** argv)
+struct Symbol* newSymbol(Type type)
 {
-	// the first argument is the compiler
-	// if there is no second argument, there is no file to compile
-	if (argc < 2)
+	struct Symbol* symbol = malloc(sizeof(struct Symbol));
+	symbol->type = type;
+	symbol->id = 0;
+	symbol->a = NULL;
+	symbol->b = NULL;
+	symbol->next = NULL;
+	return symbol;
+}
+
+void deleteSymbol(struct Symbol* symbol)
+{
+	if (symbol != NULL)
+		free(symbol);
+	return;
+}
+
+void deleteSymbolList(struct Symbol* base)
+{
+	if (base->next != NULL)
+		deleteList(base->next);
+	deleteSymbol(base);
+	return;
+}
+
+void addSymbol(struct Symbol* dest, struct Symbol* symbol)
+{
+	while (dest->next == NULL)
 	{
-		printf("Error: not enough arguments\n");
-		return 0;
+		dest = dest->next;
 	}
-
-	// compile the first file
-	// read the contents of the file
-	char* data = read(argv[1]);
-	// parse the file into organized structures
-//	parse(jkjkj, file);
-	// generate assembly
-	char* assembly;
-//	compile(assembly, jkjkj);
-	// write to file
-	write("out.s", data);
-
-	return 0;
+	dest->next = symbol;
+	return;
 }

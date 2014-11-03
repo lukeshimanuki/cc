@@ -1,8 +1,8 @@
 /* =============================================================================
- * @file main.c
+ * @file symbol.h
  * @author Luke Shimanuki
  * @date 1 Nov 2014
- * @brief Implements the main function.
+ * @brief Structure and functions for symbolic parsing.
  *
  * This file is part of MCC.
  *
@@ -31,34 +31,64 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
-#include <stdio.h>
-
-#include "defs.h"
+#ifndef __SYMBOL_H__
+#define __SYMBOL_H__
 
 /***************************************************************************//**
- * This is executed on startup. It processes the command line arguments to
- * determine the file to compile, and runs through each step.
+ * @struct Symbol
+ *
+ * @brief This structure...
+ *
+ * It does such and such... mention linked list, etc...
  ******************************************************************************/
-int main(int argc, char** argv)
+struct Symbol
 {
-	// the first argument is the compiler
-	// if there is no second argument, there is no file to compile
-	if (argc < 2)
+	//! The type of symbol.
+	/*! details... */
+	enum Type
 	{
-		printf("Error: not enough arguments\n");
-		return 0;
-	}
+		VARIABLE, /*!< description */
+		STRING,
+		VALUE,
+		TYPE,
 
-	// compile the first file
-	// read the contents of the file
-	char* data = read(argv[1]);
-	// parse the file into organized structures
-//	parse(jkjkj, file);
-	// generate assembly
-	char* assembly;
-//	compile(assembly, jkjkj);
-	// write to file
-	write("out.s", data);
+		DECLARE,
+		ASSIGN,
 
-	return 0;
-}
+		ADD,
+		SUBTRACT,
+		MULTIPLY,
+		DIVIDE,
+
+		FUNCTION,
+		CALL,
+		RETURN,
+
+		SEMICOLON
+	} type;
+
+	union
+	{
+		int id;
+		int value;
+		char* string;
+	};
+
+	struct Symbol* a;
+	struct Symbol* b;
+
+	struct Symbol* next;
+};
+
+/***************************************************************************//**
+ * @brief Loads a file into a buffer.
+ ******************************************************************************/
+struct Symbol* newSymbol(Type type);
+
+void deleteSymbol(struct Symbol* symbol);
+
+void deleteSymbolList(struct Symbol* base);
+
+void addSymbol(struct Symbol* dest, struct Symbol* symbol);
+
+#endif /* __SYMBOL_H__ */

@@ -36,22 +36,51 @@
 
 /***************************************************************************//**
  * @brief Loads a file into a buffer.
+ *
+ * @param argc The number of command line arguments.
+ *
+ * @param argv An array containing the command line arguments.
+ *
+ * @return The error level. 0 means no error.
+ ******************************************************************************/
+int main(int argc, char** argv);
+
+/***************************************************************************//**
+ * @brief Loads a file into a buffer.
+ *
+ * @param fileName The path to the file to be read.
+ *
+ * @return A buffer containing the contents of the file.
  ******************************************************************************/
 char* read(char* fileName);
 
 /***************************************************************************//**
  * @brief Analyzes the data and organizes it symbolically.
+ *
+ * @param data The buffer of data to be translated into symbols.
+ *
+ * @return A tree of symbols representing the data
  ******************************************************************************/
 void parse(char* data);
 
 /***************************************************************************//**
  * @brief Converts symbolic structure to assembly.
+ *
+ * @param symbols Parsed data to be converted to assembly.
+ *
+ * @return A buffer containing the assembly code.
  ******************************************************************************/
-//void compile(char* dest, symbols);
+char* compile(char symbols);
 
 /***************************************************************************//**
  * @brief Writes data to a file.
+ *
+ * @param fileName The path to the file that will be written to.
+ *
+ * @param data The data that is to be written to the file.
+ *
+ * @return The number of bytes that were written.
  ******************************************************************************/
-void write(char* fileName, char* data);
+size_t write(char* fileName, char* data);
 
 #endif /* __DEFS_H__ */
