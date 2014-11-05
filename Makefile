@@ -3,7 +3,7 @@ all: dir compile
 dir:
 	mkdir -p build
 
-compile: build/read.o build/parse.o build/compile.o build/write.o build/symbol.o build/string.o build/main.o
+compile: build/read.o build/parse.o build/compile.o build/write.o build/symbol.o build/string.o build/scope.o build/main.o
 #compile: build/read.o build/parse.o build/compile.o build/write.o build/main.o
 	gcc $^ -o compile
 
@@ -26,6 +26,9 @@ build/symbol.o: src/symbol.c
 	gcc -std=c99 -c $< -o $@
 	
 build/string.o: src/string.c
+	gcc -std=c99 -c $< -o $@
+
+build/scope.o: src/scope.c
 	gcc -std=c99 -c $< -o $@
 
 

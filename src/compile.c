@@ -35,6 +35,9 @@
 
 #include "symbol.h"
 #include "string.h"
+#include "scope.h"
+
+struct Scope* scope = NULL;
 
 // iterative over lists, recursive over children
 // eg: recurse over function->parameters->declare->variable
@@ -42,6 +45,8 @@
 // but the string list is iterative
 struct String* compile(struct Symbol* symbols)
 {
+	if (!scope)
+		scope = newScope();
 	struct String* assembly = NULL;
 	while (symbols != NULL)
 	{
@@ -54,16 +59,31 @@ struct String* compile(struct Symbol* symbols)
 		{
 			// results stored in %eax
 			case VARIABLE:
+				// by value (use lea for ref)
+				sprintf(buffer, "\tmov %i(%ebp),%%eax\n", getOffset(scope, symbols->id));
+				addString(current, getString(buffer));
 				break;
-			case STRING:
+			case STRING: // strings are stored as "STR#:" where # is the id
+				sprintf(buffer, "\tmov $STR%i,%%eax\n", symbols->id);
+				addString(current, getString(buffer));
 				break;
 			case VALUE:
+				sprintf(buffer, "\tmov $%i,%%eax\n", symbols->value);
+				addString(current, getString(buffer));
 				break;
 			case TYPE:
 				break;
 			case DECLARE:
 				break;
-			case ASSIGN:
+			case ASSIGN: // TODO: implement the ref vs val thingy
+				// evaluate location and store it in %ecx
+				addString(current, compile(symbols->lhs));
+				addString(current, getString("\tmov %eax,%ecx\n"));
+				// evaluate value and store it in %eax
+				addString(current, compile(symbols->rhs));
+				// store value in location
+				addString(current, getString("\tmov %eax,(%ecx)\n"));
+				// return the value (which is in %eax)
 				break;
 			case ADD:
 				// place lhs in %eax and rhs in %ecx
@@ -94,7 +114,7 @@ struct String* compile(struct Symbol* symbols)
 				addString(current, getString("\tmov $0,%edx\n"));
 				addString(current, getString("\tidiv %ecx\n"));
 				break;
-			case FUNCTION: // lhs: paramters; rhs: instructions
+			case FUNCTION: // lhs: parameters; rhs: instructions
 			{
 				// header
 				addString(current, getString("\t\n"));
@@ -105,7 +125,8 @@ struct String* compile(struct Symbol* symbols)
 				addString(current, getString("\tpush %ebp\n"));
 				addString(current, getString("\tmov %esp,%ebp\n"));
 				// create scope
-				
+				struct Scope* oldScope = scope;
+				scope = newScope();
 				// process parameters
 				struct Symbol* parameter = symbols->lhs;
 				unsigned int parameterIndex = 0;
@@ -114,7 +135,7 @@ struct String* compile(struct Symbol* symbols)
 					// declare: reference to var is stored in %eax
 					addString(current, compile(parameter));
 					// assign: +8 because we push %ebp and instruction pointer
-					sprintf(buffer, "\tmov %i(%ebp),(%eax)\n", 4 * parameterIndex + 8);
+					sprintf(buffer, "\tmov %i(%%ebp),(%%eax)\n", 4 * parameterIndex + 8);
 					addString(current, getString(buffer));
 					parameterIndex++;
 					parameter = parameter->next;
@@ -127,7 +148,8 @@ struct String* compile(struct Symbol* symbols)
 					instruction = instruction->next;
 				}
 				// restore scope
-				
+				deleteScope(scope);
+				scope = oldScope;
 				break;
 			}
 			case CALL: // rhs: arguments
