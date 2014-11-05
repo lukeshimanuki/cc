@@ -33,11 +33,13 @@
 
 #include <stdio.h>
 
+#include "string.h"
+
 /***************************************************************************//**
  * The contents of data are written to the file specified by fileName. It
  * returns the number of bytes written.
  ******************************************************************************/
-size_t write(char* fileName, char* data)
+size_t write(char* fileName, struct String* data)
 {
 	FILE* file;
 
@@ -46,7 +48,15 @@ size_t write(char* fileName, char* data)
 	if (file)
 	{
 		// write to file
-		return fprintf(file, "%s", data);
+		size_t numBytes = 0;
+		while (data != NULL)
+		{
+			// only write if not empty
+			if (data->contents)
+				numBytes += fprintf(file, "%s", data->contents);
+			data = data->next;
+		}
+		return numBytes;
 	}
 
 	return 0;

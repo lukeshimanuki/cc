@@ -31,6 +31,8 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
+#include <stdlib.h>
+
 #include "symbol.h"
 
 
@@ -42,13 +44,13 @@
  *
  * @return The error level. 0 means no error.
  ******************************************************************************/
-struct Symbol* newSymbol(Type type)
+struct Symbol* newSymbol(enum Type type)
 {
 	struct Symbol* symbol = malloc(sizeof(struct Symbol));
 	symbol->type = type;
 	symbol->id = 0;
-	symbol->a = NULL;
-	symbol->b = NULL;
+	symbol->lhs = NULL;
+	symbol->rhs = NULL;
 	symbol->next = NULL;
 	return symbol;
 }
@@ -63,7 +65,9 @@ void deleteSymbol(struct Symbol* symbol)
 void deleteSymbolList(struct Symbol* base)
 {
 	if (base->next != NULL)
-		deleteList(base->next);
+		deleteSymbolList(base->lhs);
+		deleteSymbolList(base->rhs);
+		deleteSymbolList(base->next);
 	deleteSymbol(base);
 	return;
 }

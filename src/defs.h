@@ -34,6 +34,9 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
+struct Symbol;
+struct String;
+
 /***************************************************************************//**
  * @brief Loads a file into a buffer.
  *
@@ -61,7 +64,7 @@ char* read(char* fileName);
  *
  * @return A tree of symbols representing the data
  ******************************************************************************/
-void parse(char* data);
+struct Symbol* parse(char* data);
 
 /***************************************************************************//**
  * @brief Converts symbolic structure to assembly.
@@ -70,7 +73,7 @@ void parse(char* data);
  *
  * @return A buffer containing the assembly code.
  ******************************************************************************/
-char* compile(char symbols);
+struct String* compile(struct Symbol* symbols);
 
 /***************************************************************************//**
  * @brief Writes data to a file.
@@ -81,6 +84,6 @@ char* compile(char symbols);
  *
  * @return The number of bytes that were written.
  ******************************************************************************/
-size_t write(char* fileName, char* data);
+size_t write(char* fileName, struct String* data);
 
 #endif /* __DEFS_H__ */

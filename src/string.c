@@ -31,6 +31,9 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "string.h"
 
 
@@ -46,7 +49,10 @@ struct String* newString(size_t size)
 {
 	struct String* string = malloc(sizeof(struct String));
 	string->size = size;
-	string->contents = malloc(size);
+	if (size > 0)
+		string->contents = malloc(size);
+	else
+		string->contents = NULL;
 	string->next = NULL;
 	return string;
 }
@@ -57,7 +63,7 @@ struct String* getString(char* array)
 	struct String* string = malloc(sizeof(struct String));
 	string->size = strlen(array);
 	string->contents = malloc(string->size);
-	strcpy(contents, array);
+	strcpy(string->contents, array);
 	string->next = NULL;
 	return string;
 }
@@ -72,12 +78,11 @@ void deleteString(struct String* string)
 void deleteStringList(struct String* base)
 {
 	if (base->next != NULL)
-		deleteList(base->next);
+		deleteStringList(base->next);
 	deleteString(base);
 	return;
 }
 
-// adds to the "next" line, not the "child" line
 void addString(struct String* dest, struct String* string)
 {
 	while (dest->next == NULL)

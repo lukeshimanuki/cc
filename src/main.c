@@ -49,16 +49,12 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	// compile the first file
 	// read the contents of the file
 	char* data = read(argv[1]);
 	// parse the file into organized structures
-//	parse(jkjkj, file);
+	struct Symbol* symbols = parse(data);
 	// generate assembly
-	char* assembly;
-//	compile(assembly, jkjkj);
+	struct String* assembly = compile(symbols);
 	// write to file
-	write("out.s", data);
-
-	return 0;
+	return write("out.s", assembly);
 }

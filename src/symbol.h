@@ -63,19 +63,15 @@ struct Symbol
 		FUNCTION,
 		CALL,
 		RETURN,
-
-		SEMICOLON
 	} type;
 
-	union
-	{
-		int id;
-		int value;
-		char* string;
-	};
+	int id;
+	int value;
+	char* string;
+	char* name;
 
-	struct Symbol* a;
-	struct Symbol* b;
+	struct Symbol* lhs;
+	struct Symbol* rhs;
 
 	struct Symbol* next;
 };
@@ -83,7 +79,7 @@ struct Symbol
 /***************************************************************************//**
  * @brief Loads a file into a buffer.
  ******************************************************************************/
-struct Symbol* newSymbol(Type type);
+struct Symbol* newSymbol(enum Type type);
 
 void deleteSymbol(struct Symbol* symbol);
 

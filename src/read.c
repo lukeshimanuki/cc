@@ -32,6 +32,7 @@
  * ========================================================================== */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 /***************************************************************************//**
  * The filename is passed as a string, and the buffer containing the
