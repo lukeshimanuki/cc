@@ -74,6 +74,8 @@ struct String* compile(struct Symbol* symbols)
 			case TYPE:
 				break;
 			case DECLARE:
+				addString(current, getString("\tsub $4,%esp\n"));
+				addVariable(scope, symbols->id, 4);
 				break;
 			case ASSIGN: // TODO: implement the ref vs val thingy
 				// evaluate location and store it in %ecx

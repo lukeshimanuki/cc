@@ -35,6 +35,34 @@
 
 #include "defs.h"
 
+#include "symbol.h"
+// iterative over next, recursive over lhs/rhs
+void printSymbol(struct Symbol* symbol)
+{
+	while (symbol)
+	{
+		switch (symbol->type)
+		{
+			case VARIABLE: printf("var\n"); break;
+			case STRING: printf("str\n"); break;
+			case VALUE: printf("val\n"); break;
+			case TYPE: printf("type\n"); break;
+			case DECLARE: printf("dec\n"); break;
+			case ASSIGN: printf("assi\n"); break;
+			case ADD: printf("add\n"); break;
+			case SUBTRACT: printf("sub\n"); break;
+			case MULTIPLY: printf("mult\n"); break;
+			case DIVIDE: printf("div\n"); break;
+			case FUNCTION: printf("func\n"); break;
+			case CALL: printf("call\n"); break;
+			case RETURN: printf("ret\n"); break;
+			case BLANK: printf("blank\n"); break;
+		}
+		symbol = symbol->next;
+	}
+	return;
+}
+
 /***************************************************************************//**
  * This is executed on startup. It processes the command line arguments to
  * determine the file to compile, and runs through each step.
@@ -53,6 +81,7 @@ int main(int argc, char** argv)
 	char* data = read(argv[1]);
 	// parse the file into organized structures
 	struct Symbol* symbols = parse(data);
+	printSymbol(symbols);
 	// generate assembly
 	struct String* assembly = compile(symbols);
 	// write to file

@@ -85,7 +85,7 @@ void deleteStringList(struct String* base)
 
 void addString(struct String* dest, struct String* string)
 {
-	while (dest->next == NULL)
+	while (dest->next != NULL)
 	{
 		dest = dest->next;
 	}

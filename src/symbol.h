@@ -63,6 +63,8 @@ struct Symbol
 		FUNCTION,
 		CALL,
 		RETURN,
+
+		BLANK
 	} type;
 
 	int id;

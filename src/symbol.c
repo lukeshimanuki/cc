@@ -74,7 +74,7 @@ void deleteSymbolList(struct Symbol* base)
 
 void addSymbol(struct Symbol* dest, struct Symbol* symbol)
 {
-	while (dest->next == NULL)
+	while (dest->next != NULL)
 	{
 		dest = dest->next;
 	}
