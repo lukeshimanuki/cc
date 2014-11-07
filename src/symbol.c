@@ -99,6 +99,7 @@ char* operatorString(enum Type operatorID)
 		case BBRACK: return "{";
 		case EBRACK: return "}";
 		case SEMICOLON: return ";";
+		case COMMA: return ",";
 		case ADD: return "+";
 		case SUBTRACT: return "-";
 		case MULTIPLY: return "*";

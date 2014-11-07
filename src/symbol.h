@@ -68,6 +68,9 @@ struct Symbol
 		GREATER_OR_EQUAL,
 		LESS_OR_EQUAL,
 
+		PARENTHESES,
+		BRACKET,
+
 		FUNCTION,
 		CALL,
 		RETURN,
@@ -78,6 +81,7 @@ struct Symbol
 		BBRACK,
 		EBRACK,
 		SEMICOLON,
+		COMMA,
 
 		// placeholders
 		BLANK

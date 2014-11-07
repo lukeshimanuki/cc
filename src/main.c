@@ -64,6 +64,7 @@ void printSymbol(struct Symbol* symbol)
 			case BBRACK: printf("bbrack\n"); break;
 			case EBRACK: printf("ebrack\n"); break;
 			case SEMICOLON: printf("semicolon\n"); break;
+			case COMMA: printf("comma\n"); break;
 
 		}
 		symbol = symbol->next;
