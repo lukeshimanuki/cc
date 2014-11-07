@@ -7,9 +7,8 @@
 struct Symbol* parse(char* data)
 {
 	struct Symbol* symbols = translate(data);
-	return symbols;
-//	struct Symbol* tree = combine(symbols);
-//	return tree;
+	struct Symbol* tree = combine(symbols);
+	return tree;
 }
 
 char* names[256];
@@ -186,8 +185,82 @@ struct Symbol* translate(char* data)
 // looks for patterns and combines
 struct Symbol* combine(struct Symbol* symbols)
 {
+	struct Symbol* current;
+
+	// parentheses: bparen, symbols, eparen
+	current = symbols;
+	struct Symbol* parentheses[32];
+	int numParentheses = 0;
+	while (current)
+	{
+		// check if it is (
+		if (current->type == BPAREN)
+		{
+			parentheses[numParentheses] = current;
+			numParentheses++;
+		}
+		// check if it is )
+		if (current->next && current->next->type == EPAREN)
+		{
+			// connect it to last (: set rhs to inside, next to after
+			struct Symbol* paren = parentheses[numParentheses - 1];
+			paren->type = PARENTHESES;
+			// check if empty
+			if (current == paren)
+			{
+				struct Symbol* eparen = current->next;
+				paren->next = current->next->next;
+				deleteSymbol(eparen);
+			}
+			else
+			{
+				paren->rhs = paren->next;
+				paren->next = current->next->next;
+				current->next = NULL;
+				current = paren;
+			}
+			numParentheses--;
+		}
+		current = current->next;
+	}
+	// brackets: bbrack, symbols, ebrack
+	current = symbols;
+	struct Symbol* brackets[32];
+	int numBrackets = 0;
+	while (current)
+	{
+		// check if it is {
+		if (current->type == BBRACK)
+		{
+			brackets[numBrackets] = current;
+			numBrackets++;
+		}
+		// check if it is }
+		if (current->next && current->next->type == EBRACK)
+		{
+			// connect it to last {: set rhs to inside, next to after
+			struct Symbol* bracket = brackets[numBrackets - 1];
+			bracket->type = BRACKET;
+			// check if empty
+			if (current == bracket)
+			{
+				struct Symbol* ebrack = current->next;
+				bracket->next = current->next->next;
+				deleteSymbol(ebrack);
+			}
+			else
+			{
+				bracket->rhs = bracket->next;
+				bracket->next = current->next->next;
+				current->next = NULL;
+				current = bracket;
+			}
+			numBrackets--;
+		}
+		current = current->next;
+	}
 	// functions: type, variable, parentheses, bracket
-	while (symbols)
+/*	while (symbols)
 	{
 		// check if 4 symbols exist
 		if (symbols->next && symbols->next->next && symbols->next->next->next)
@@ -212,7 +285,7 @@ struct Symbol* combine(struct Symbol* symbols)
 				deleteSymbol(extra);
 			}
 		}
-	}
+	}*/
 	return symbols;
 }
 
