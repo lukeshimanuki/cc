@@ -14,6 +14,7 @@ struct Symbol* parse(char* data)
 
 char* names[256];
 size_t numNames = 0;
+int numStrings = 0;
 
 struct Symbol* translate(char* data)
 {
@@ -21,6 +22,31 @@ struct Symbol* translate(char* data)
 	// repeat until \0
 	while (data[0] != '\0')
 	{
+		// check for string literal
+		if (data[0] == '"')
+		{
+			// find next ", ignoring the first one
+			int length = strchr(data + 1, '"') - data - 1;
+			// create new string symbol
+			struct Symbol* symbol = newSymbol(STRING);
+			// set string literal (null terminated)
+			symbol->string = malloc(length + 1);
+			memcpy(symbol->string, data + 1, length);
+			symbol->string[length] = '\0';
+			// and the id
+			symbol->id = numStrings;
+			numStrings++;
+			// add it to the list
+			addSymbol(symbols, symbol);
+			// continue on to the next word
+			data += length + 2;
+			continue;
+		}
+		// check for character literal
+		if (data[0] == '\'')
+		{ // idk what to do here...
+//			addSymbol(symbols, newSymbol(BLANK));
+		}
 		// one time redundancy, but whatever
 		enum CharType type = getType(data[0]);
 		char word[32];
@@ -33,7 +59,8 @@ struct Symbol* translate(char* data)
 		word[indice] = '\0'; // null terminate
 		// remove word from data
 		data += strlen(word);
-		
+	
+		// process word
 		switch (type)
 		{
 			case WHITESPACE:
@@ -41,21 +68,24 @@ struct Symbol* translate(char* data)
 				break;
 			case SPECIAL:
 			{
-				size_t id = 0;
-				size_t i = 0;
+				size_t id = 0; // index of operators[]
+				size_t i = 0; // indice of word
 				// sizeof arr / sizeof element -> number of elements
 				while (id < sizeof(operators) / sizeof(operators[0]) && strlen(word + i) > 0)
 				{
 					// if it is this operator
-					if (strncmp(word + i, operators[id], strlen(operators[id])) == 0)
+					if (strncmp(word + i, operatorString(operators[id]), strlen(operatorString(operators[id]))) == 0)
 					{
 						// add the symbol
-						addSymbol(symbols, newSymbol(getSymbolType(id)));
+						addSymbol(symbols, newSymbol(operators[id]));
 						// increase indice
-						i += strlen(operators[id]);
+						i += strlen(operatorString(operators[id]));
 						// restart search
 						id = 0;
 					}
+					// otherwise move on to the next operator
+					else
+						id++;
 				}
 				break;
 			}
@@ -111,24 +141,16 @@ enum CharType getType(char c)
 		case '-':
 		case '*':
 		case '/':
+		case '=':
+		case '>':
+		case '<':
+		case '(':
+		case ')':
+		case '{':
+		case '}':
+		case ';':
 			return SPECIAL;
 		default:
 			return NORMAL;
 	}
-}
-
-enum Type getSymbolType(size_t operatorID)
-{
-	switch (operatorID)
-	{
-		case 0:
-			return ADD;
-		case 1:
-			return SUBTRACT;
-		case 2:
-			return MULTIPLY;
-		case 3:
-			return DIVIDE;
-	}
-	return BLANK;
 }

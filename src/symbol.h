@@ -59,11 +59,27 @@ struct Symbol
 		SUBTRACT,
 		MULTIPLY,
 		DIVIDE,
+		INCREMENT,
+		DECREMENT,
+
+		EQUAL,
+		GREATER,
+		LESS,
+		GREATER_OR_EQUAL,
+		LESS_OR_EQUAL,
 
 		FUNCTION,
 		CALL,
 		RETURN,
 
+		// only used for parsing
+		BPAREN,
+		EPAREN,
+		BBRACK,
+		EBRACK,
+		SEMICOLON,
+
+		// placeholders
 		BLANK
 	} type;
 
@@ -88,5 +104,7 @@ void deleteSymbol(struct Symbol* symbol);
 void deleteSymbolList(struct Symbol* base);
 
 void addSymbol(struct Symbol* dest, struct Symbol* symbol);
+
+char* operatorString(enum Type operatorID);
 
 #endif /* __SYMBOL_H__ */

@@ -81,3 +81,30 @@ void addSymbol(struct Symbol* dest, struct Symbol* symbol)
 	dest->next = symbol;
 	return;
 }
+
+// operatorID is type of symbol, not index of operators[]
+char* operatorString(enum Type operatorID)
+{
+	switch (operatorID)
+	{
+		case EQUAL: return "==";
+		case INCREMENT: return "++";
+		case DECREMENT: return "--";
+		case GREATER_OR_EQUAL: return ">=";
+		case LESS_OR_EQUAL: return "<=";
+
+		case ASSIGN: return "=";
+		case BPAREN: return "(";
+		case EPAREN: return ")";
+		case BBRACK: return "{";
+		case EBRACK: return "}";
+		case SEMICOLON: return ";";
+		case ADD: return "+";
+		case SUBTRACT: return "-";
+		case MULTIPLY: return "*";
+		case DIVIDE: return "/";
+		case GREATER: return ">";
+		case LESS: return "<";
+		case BLANK: return "garbage";
+	}
+}

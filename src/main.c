@@ -39,6 +39,7 @@
 // iterative over next, recursive over lhs/rhs
 void printSymbol(struct Symbol* symbol)
 {
+	printf("printing symbols\n");
 	while (symbol)
 	{
 		switch (symbol->type)
@@ -57,6 +58,13 @@ void printSymbol(struct Symbol* symbol)
 			case CALL: printf("call\n"); break;
 			case RETURN: printf("ret\n"); break;
 			case BLANK: printf("blank\n"); break;
+
+			case BPAREN: printf("bparen\n"); break;
+			case EPAREN: printf("eparen\n"); break;
+			case BBRACK: printf("bbrack\n"); break;
+			case EBRACK: printf("ebrack\n"); break;
+			case SEMICOLON: printf("semicolon\n"); break;
+
 		}
 		symbol = symbol->next;
 	}
