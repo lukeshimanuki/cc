@@ -52,7 +52,15 @@ struct String* data = NULL;
 struct String* compile(struct Symbol* symbols)
 {
 	data = newString(0);
-	struct String* text = getAssembly(symbols, VAL);
+	struct String* text = NULL;
+	while (symbols)
+	{
+		if (text == NULL)
+			text = getAssembly(symbols, VAL);
+		else
+			addString(text, getAssembly(symbols, VAL));
+		symbols = symbols->next;
+	}
 	// insert data before text
 	addString(data, text);
 	return data;
@@ -67,7 +75,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 	if (!scope)
 		scope = newScope();
 	struct String* assembly = NULL;
-	while (symbols != NULL)
+	if (symbols)
 	{
 		// create empty string
 		struct String* current = newString(0);
@@ -78,6 +86,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 		{
 			// results stored in %eax
 			case VARIABLE:
+				addString(current, getString("\t# var\n"));
 				if (pass == VAL)
 					sprintf(buffer, "\tmov %i(%%ebp),%%eax\n", getOffset(scope, symbols->id));
 				else
@@ -85,25 +94,36 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString(buffer));
 				break;
 			case STRING: // strings are stored as "STR#:" where # is the id
+				addString(current, getString("\t# str\n"));
 				// store string in read only data section
 				addString(data, getString("\t.section .rodata\n"));
 				sprintf(buffer, "STR%i:\n", symbols->id);
+				addString(data, getString(buffer));
+				sprintf(buffer, "\t.string \"%s\"\n", symbols->string);
 				addString(data, getString(buffer));
 				// reference string's location
 				sprintf(buffer, "\tmov $STR%i,%%eax\n", symbols->id);
 				addString(current, getString(buffer));
 				break;
 			case VALUE:
+				addString(current, getString("\t# val\n"));
 				sprintf(buffer, "\tmov $%i,%%eax\n", symbols->value);
 				addString(current, getString(buffer));
 				break;
 			case TYPE:
+				addString(current, getString("\t# type\n"));
 				break;
 			case DECLARE:
+				addString(current, getString("\t# dec\n"));
 				addString(current, getString("\tsub $4,%esp\n"));
-				addVariable(scope, symbols->id, 4);
+				if (pass = VAL)
+					addString(current, getString("\tmov (%esp),%eax\n"));
+				else
+					addString(current, getString("\tmov %esp,%eax\n"));
+				addVariable(scope, symbols->rhs->id, 4);
 				break;
-			case ASSIGN: // TODO: implement the ref vs val thingy
+			case ASSIGN:
+				addString(current, getString("\t# assi\n"));
 				// evaluate location and push it (to be popped into %ecx)
 				addString(current, getAssembly(symbols->lhs, REF));
 				addString(current, getString("\tpush %eax\n"));
@@ -115,6 +135,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				// return the value (which is in %eax)
 				break;
 			case ADD:
+				addString(current, getString("\t# add\n"));
 				// place lhs in %eax and rhs in %ecx
 				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tpush %eax\n"));
@@ -123,6 +144,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString("\tadd %ecx,%eax\n"));
 				break;
 			case SUBTRACT: // a - b: lhs = a, rhs = b
+				addString(current, getString("\t# sub\n"));
 				// place lhs in %eax and rhs in %ecx
 				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tpush %eax\n"));
@@ -131,6 +153,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString("\tsub %ecx,%eax\n"));
 				break;
 			case MULTIPLY:
+				addString(current, getString("\t# mult\n"));
 				// place lhs in %eax and rhs in %ecx
 				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tpush %eax\n"));
@@ -139,6 +162,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString("\timul %ecx,%eax\n"));
 				break;
 			case DIVIDE: // a / b: lhs = a, rhs = b
+				addString(current, getString("\t# div\n"));
 				// place lhs in %eax and rhs in %ecx, %edx = 0
 				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tpush %eax\n"));
@@ -149,6 +173,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				break;
 			case FUNCTION: // lhs: parameters; rhs: instructions
 			{
+				addString(current, getString("\t# func\n"));
 				// header
 				addString(current, getString("\t.text\n"));
 				sprintf(buffer, "\t.globl %s\n", symbols->name);
@@ -191,26 +216,36 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 			}
 			case CALL: // rhs: arguments
 			{
+				addString(current, getString("\t# call\n"));
+				addString(current, getString(buffer));
 				// process arguments in reverse order
+				int numArgs = 0;
 				struct Symbol* argument = symbols->rhs;
+				struct String* args = NULL;
 				while (argument)
 				{
+					numArgs++;
 					// evaluate
 					struct String* arg = getAssembly(argument, VAL);
 					// push
 					addString(arg, getString("\tpush %eax\n"));
 					// insert string at beginning
-					addString(arg, current);
-					current = arg;
+					addString(arg, args);
+					args = arg;
 					argument = argument->next;
 				}
+				addString(current, args);
 				// call the function, the result is stored in %eax
 				// it implicitly pushes the instruction pointer
 				sprintf(buffer, "\tcall %s\n", symbols->name);
 				addString(current, getString(buffer));
+				// pop arguments
+				sprintf(buffer, "\tadd $%i,%%esp\n", numArgs * 4);
+				addString(current, getString(buffer));
 				break;
 			}
 			case RETURN:
+				addString(current, getString("\t# ret\n"));
 				// if there is an operand (to the right), store it in %eax
 				if (symbols->rhs)
 					addString(current, getAssembly(symbols->rhs, VAL));
