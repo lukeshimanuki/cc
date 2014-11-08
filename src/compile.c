@@ -39,11 +39,24 @@
 
 struct Scope* scope = NULL;
 
+enum Pass
+{
+	VAL,
+	REF
+};
+
+struct String* getAssembly(struct Symbol* symbols, enum Pass pass);
+
+struct String* compile(struct Symbol* symbols)
+{
+	return getAssembly(symbols, VAL);
+}
+
 // iterative over lists, recursive over children
 // eg: recurse over function->parameters->declare->variable
 // iterative over declare, declare, add, call
 // but the string list is iterative
-struct String* compile(struct Symbol* symbols)
+struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 {
 	if (!scope)
 		scope = newScope();
@@ -59,8 +72,10 @@ struct String* compile(struct Symbol* symbols)
 		{
 			// results stored in %eax
 			case VARIABLE:
-				// by value (use lea for ref)
-				sprintf(buffer, "\tmov %i(%ebp),%%eax\n", getOffset(scope, symbols->id));
+				if (pass == VAL)
+					sprintf(buffer, "\tmov %i(%ebp),%%eax\n", getOffset(scope, symbols->id));
+				else
+					sprintf(buffer, "\tlea %i(%ebp),%%eax\n", getOffset(scope, symbols->id));
 				addString(current, getString(buffer));
 				break;
 			case STRING: // strings are stored as "STR#:" where # is the id
@@ -79,40 +94,40 @@ struct String* compile(struct Symbol* symbols)
 				break;
 			case ASSIGN: // TODO: implement the ref vs val thingy
 				// evaluate location and store it in %ecx
-				addString(current, compile(symbols->lhs));
+				addString(current, getAssembly(symbols->lhs, REF));
 				addString(current, getString("\tmov %eax,%ecx\n"));
 				// evaluate value and store it in %eax
-				addString(current, compile(symbols->rhs));
+				addString(current, getAssembly(symbols->rhs, VAL));
 				// store value in location
 				addString(current, getString("\tmov %eax,(%ecx)\n"));
 				// return the value (which is in %eax)
 				break;
 			case ADD:
 				// place lhs in %eax and rhs in %ecx
-				addString(current, compile(symbols->rhs));
+				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tmov %eax,%ecx\n"));
-				addString(current, compile(symbols->lhs));
+				addString(current, getAssembly(symbols->lhs, VAL));
 				addString(current, getString("\tadd %ecx,%eax\n"));
 				break;
 			case SUBTRACT: // a - b: lhs = a, rhs = b
 				// place lhs in %eax and rhs in %ecx
-				addString(current, compile(symbols->rhs));
+				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tmov %eax,%ecx\n"));
-				addString(current, compile(symbols->lhs));
+				addString(current, getAssembly(symbols->lhs, VAL));
 				addString(current, getString("\tsub %ecx,%eax\n"));
 				break;
 			case MULTIPLY:
 				// place lhs in %eax and rhs in %ecx
-				addString(current, compile(symbols->rhs));
+				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tmov %eax,%ecx\n"));
-				addString(current, compile(symbols->lhs));
+				addString(current, getAssembly(symbols->lhs, VAL));
 				addString(current, getString("\timul %ecx,%eax\n"));
 				break;
 			case DIVIDE: // a / b: lhs = a, rhs = b
 				// place lhs in %eax and rhs in %ecx, %edx = 0
-				addString(current, compile(symbols->rhs));
+				addString(current, getAssembly(symbols->rhs, VAL));
 				addString(current, getString("\tmov %eax,%ecx\n"));
-				addString(current, compile(symbols->lhs));
+				addString(current, getAssembly(symbols->lhs, VAL));
 				addString(current, getString("\tmov $0,%edx\n"));
 				addString(current, getString("\tidiv %ecx\n"));
 				break;
@@ -135,7 +150,7 @@ struct String* compile(struct Symbol* symbols)
 				while (parameter)
 				{
 					// declare: reference to var is stored in %eax
-					addString(current, compile(parameter));
+					addString(current, getAssembly(parameter, VAL));
 					// assign: +8 because we push %ebp and instruction pointer
 					sprintf(buffer, "\tmov %i(%%ebp),(%%eax)\n", 4 * parameterIndex + 8);
 					addString(current, getString(buffer));
@@ -146,7 +161,7 @@ struct String* compile(struct Symbol* symbols)
 				struct Symbol* instruction = symbols->rhs;
 				while (instruction)
 				{
-					addString(current, compile(instruction));
+					addString(current, getAssembly(instruction, VAL));
 					instruction = instruction->next;
 				}
 				// restore scope
@@ -161,12 +176,13 @@ struct String* compile(struct Symbol* symbols)
 				while (argument)
 				{
 					// evaluate
-					struct String* arg = compile(argument);
+					struct String* arg = getAssembly(argument, VAL);
 					// push
-					addString(current, getString("\tpush %eax\n"));
+					addString(arg, getString("\tpush %eax\n"));
 					// insert string at beginning
 					addString(arg, current);
 					current = arg;
+					argument = argument->next;
 				}
 				// call the function, the result is stored in %eax
 				// it implicitly pushes the instruction pointer
@@ -177,18 +193,37 @@ struct String* compile(struct Symbol* symbols)
 			case RETURN:
 				// if there is an operand (to the right), store it in %eax
 				if (symbols->rhs)
-					addString(current, compile(symbols->rhs));
+					addString(current, getAssembly(symbols->rhs, VAL));
 				// reset stack pointer and return
 				addString(current, getString("\tmov %ebp,%esp\n"));
 				addString(current, getString("\tpop %ebp\n"));
 				addString(current, getString("\tret\n"));
 				break;
 		}
-		if (assembly == NULL)
+		// clean up empty strings
+/*		while (current && sizeof(current->contents) == 0)
+		{ // at beginning
+			struct String* blank = current;
+			current = current->next;
+			deleteString(blank);
+		}
+		struct String* strIndex = current;
+		while (strIndex && strIndex->next)
+		{ // in middle
+			if (sizeof(strIndex->next->contents) == 0)
+			{
+				struct String* blank = strIndex->next;
+				strIndex->next = strIndex->next->next;
+				deleteString(blank);
+			}
+			strIndex = strIndex->next;
+		}
+*/		if (assembly == NULL)
 			assembly = current;
 		else
 			addString(assembly, current);
 		// process the next symbol in the next cycle
 		symbols = symbols->next;
 	}
+	return assembly;
 }

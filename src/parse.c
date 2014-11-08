@@ -91,6 +91,12 @@ struct Symbol* translate(char* data)
 			}
 			case NORMAL:
 			{
+				// check return
+				if (strcmp(word, "return") == 0)
+				{
+					addSymbol(symbols, newSymbol(RETURN));
+					break;
+				}
 				// check types: currently only supports int
 				if (strcmp(word, "int") == 0)
 				{
@@ -219,6 +225,8 @@ struct Symbol* combine(struct Symbol* symbols)
 				current->next = NULL;
 				current = paren;
 			}
+			// process contents
+			combine(paren->rhs);
 			numParentheses--;
 		}
 		current = current->next;
@@ -255,37 +263,180 @@ struct Symbol* combine(struct Symbol* symbols)
 				current->next = NULL;
 				current = bracket;
 			}
+			// process contents
+			combine(bracket->rhs);
 			numBrackets--;
 		}
 		current = current->next;
 	}
 	// functions: type, variable, parentheses, bracket
-/*	while (symbols)
+	current = symbols;
+	while (current)
 	{
 		// check if 4 symbols exist
-		if (symbols->next && symbols->next->next && symbols->next->next->next)
+		if (current->next && current->next->next && current->next->next->next)
 		{
 			// check pattern
-			if (symbols->type == TYPE && symbols->next->type == VARIABLE && symbols->next->next->type == PARENTHESES && symbols->next->next->next->type == BRACKET)
+			if (current->type == TYPE && current->next->type == VARIABLE && current->next->next->type == PARENTHESES && current->next->next->next->type == BRACKET)
 			{
 				// turn it into a function
-				symbols->type = FUNCTION;
+				current->type = FUNCTION;
 				// ignore type...
 				// set id to same as variable id
-				symbols->id = symbols->next->id;
+				current->id = current->next->id;
+				// set function name
+				current->name = malloc(strlen(current->next->name) + 1);
+				strcpy(current->name, current->next->name);
 				// set lhs to inside of parentheses
-				symbols->lhs = symbols->next->next->rhs;
+				current->lhs = current->next->next->rhs;
 				// set rhs to inside of brackets
-				symbols->rhs = symbols->next->next->next->rhs;
+				current->rhs = current->next->next->next->rhs;
 				// remove the 3 extra symbols
-				struct Symbol* extra = symbols->next;
-				symbols->next = symbols->next->next->next->next;
+				struct Symbol* extra = current->next;
+				current->next = current->next->next->next->next;
 				deleteSymbol(extra->next->next);
 				deleteSymbol(extra->next);
-				deleteSymbol(extra);
+				deleteSymbol(extra) ;
 			}
 		}
-	}*/
+		current = current->next;
+	}
+	// call: variable, parentheses
+	current = symbols;
+	while (current && current->next)
+	{
+		if (current->type == VARIABLE && current->next->type == PARENTHESES)
+		{
+			struct Symbol* paren = current->next;
+			current->type = CALL;
+			current->rhs = paren->rhs;
+			current->next = paren->next;
+			deleteSymbol(paren);
+		}
+		current = current->next;
+	}
+	// declare: type, rhs
+	current = symbols;
+	while (current && current->next)
+	{
+		if (current->type == TYPE && current->next->type == VARIABLE)
+		{
+			// replace them with declare
+			struct Symbol* var = current->next;
+			current->type = DECLARE;
+			current->rhs = var;
+			current->next = var->next;
+			var->next = NULL;
+		}
+		current = current->next;
+	}
+	// mult/div/mod: prev, lhs, operator, rhs
+	// doesn't work as first in line (cuz needs prev)
+	current = symbols;
+	while (current && current->next && current->next->next && current->next->next->next)
+	{
+		struct Symbol* operator = current->next->next;
+		struct Symbol* lhs = current->next;
+		struct Symbol* rhs = current->next->next->next;
+		if (operator->type == MULTIPLY || operator->type == DIVIDE) // insert mod
+		{
+			operator->lhs = lhs;
+			operator->rhs = rhs;
+			operator->next = rhs->next;
+			lhs->next = NULL;
+			rhs->next = NULL;
+			current->next = operator;
+		}
+		current = current->next;
+	}
+	// add/sub: prev, lhs, operator, rhs
+	// doesn't work as first in line (cuz needs prev)
+	current = symbols;
+	while (current && current->next && current->next->next && current->next->next->next)
+	{
+		struct Symbol* operator = current->next->next;
+		struct Symbol* lhs = current->next;
+		struct Symbol* rhs = current->next->next->next;
+		if (operator->type == ADD || operator->type == SUBTRACT)
+		{
+			operator->lhs = lhs;
+			operator->rhs = rhs;
+			operator->next = rhs->next;
+			lhs->next = NULL;
+			rhs->next = NULL;
+			current->next = operator;
+		}
+		current = current->next;
+	}
+	// assign: prev, lhs, assign, rhs
+	current = symbols;
+	// if at beginning, combine by copy instead of modifying pointer
+	if (current && current->next && current->next->type == ASSIGN && current->next->next)
+	{
+		// find lhs and rhs
+		struct Symbol* lhs = newSymbol(BLANK);
+		memcpy(lhs, current, sizeof(struct Symbol));
+		struct Symbol* rhs = current->next->next;
+		// copy assign to current
+		memcpy(current, current->next, sizeof(struct Symbol));
+		// set lhs and rhs
+		current->lhs = lhs;
+		current->rhs = rhs;
+		current->next = rhs->next;
+		lhs->next = NULL;
+		rhs->next = NULL;
+	}
+	// if in middle, combine by moving pointers
+	while (current && current->next && current->next->next && current->next->next->next)
+	{
+		struct Symbol* assign = current->next->next;
+		if (assign->type == ASSIGN)
+		{
+			struct Symbol* lhs = current->next;
+			struct Symbol* rhs = current->next->next->next;
+			assign->lhs = lhs;
+			assign->rhs = rhs;
+			assign->next = rhs->next;
+			lhs->next = NULL;
+			rhs->next = NULL;
+			current->next = assign;
+		}
+		current = current->next;
+	}
+	// return: ret, (optional rhs)
+	current = symbols;
+	while (current)
+	{
+		if (current->type == RETURN && current->next && current->next->type != SEMICOLON)
+		{
+			current->rhs = current->next;
+			current->next = current->rhs->next;
+			current->rhs->next = NULL;
+		}
+		current = current->next;
+	}
+	// clean blanks, commas, semicolons
+	current = symbols;
+	while (current && (current->type == BLANK || current->type == COMMA || current->type == SEMICOLON))
+	{
+		if (current->next)
+		{
+			struct Symbol* next = current->next;
+			memcpy(current, current->next, sizeof(struct Symbol));
+			deleteSymbol(next);
+		}
+		current = current->next;
+	}
+	while (current && current->next)
+	{
+		if (current->next->type == BLANK || current->next->type == COMMA || current->next->type == SEMICOLON)
+		{
+			struct Symbol* blank = current->next;
+			current->next = current->next->next;
+			deleteSymbol(blank);
+		}
+		current = current->next;
+	}
 	return symbols;
 }
 

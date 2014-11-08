@@ -1,8 +1,8 @@
 /* =============================================================================
- * @file read.c
+ * @file scope.h
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Contains a function to load files into memory.
+ * @date 4 Nov 2014
+ * @brief Structure and functions for symbolic parsing.
  *
  * This file is part of MCC.
  *
@@ -31,33 +31,41 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
-#include <stdio.h>
-
-#include "string.h"
+#ifndef __SCOPE_H__
+#define __SCOPE_H__
 
 /***************************************************************************//**
- * The contents of data are written to the file specified by fileName. It
- * returns the number of bytes written.
+ * @struct Scope
+ *
+ * @brief This structure...
+ *
+ * base scope is most local, each "next" goes more global
  ******************************************************************************/
-size_t write(char* fileName, struct String* data)
+struct Scope
 {
-	FILE* file = NULL;
+	size_t offset; // distance from beginning (the very first %ebp)
+	// it is equivalent to the first %ebp - the current %ebp
+	
+	size_t bottom; // the bottom of this stack, increases with each push
 
-	// open file
-	file = fopen(fileName, "w");
-	if (file)
-	{
-		// write to file
-		size_t numBytes = 0;
-		while (data)
-		{
-			// only write if not empty
-			if (data->contents)
-				numBytes += fprintf(file, "%s", data->contents);
-			data = data->next;
-		}
-		return numBytes;
-	}
+	size_t variables[256];
 
-	return 0;
-}
+	struct Scope* next;
+};
+
+/***************************************************************************//**
+ * @brief Loads a file into a buffer.
+ ******************************************************************************/
+struct Scope* newScope();
+
+void deleteScope(struct Scope* scope);
+
+void addScope(struct Scope* base, struct Scope* next);
+
+// returns distance from current %ebp
+int getOffset(struct Scope* scope, int varID);
+
+// adds new variable to scope
+void addVariable(struct Scope* scope, int id, size_t size);
+
+#endif /* __SCOPE_H__ */

@@ -37,10 +37,13 @@
 
 #include "symbol.h"
 // iterative over next, recursive over lhs/rhs
-void printSymbol(struct Symbol* symbol)
+void printSymbol(struct Symbol* symbol, int depth)
 {
 	while (symbol)
 	{
+		int i = 0;
+		while (i++ < depth)
+			printf("\t");
 		switch (symbol->type)
 		{
 			case VARIABLE: printf("var "); break;
@@ -68,15 +71,9 @@ void printSymbol(struct Symbol* symbol)
 			case COMMA: printf("comma "); break;
 
 		}
-		if (symbol->lhs || symbol->rhs)
-			printf(": ");
-		if (symbol->lhs)
-			printSymbol(symbol->lhs);
-		if (symbol->lhs && symbol->rhs)
-			printf(" , ");
-		if (symbol->rhs)
-			printSymbol(symbol->rhs);
-		printf(" ; ");
+		printf("\n");
+		printSymbol(symbol->lhs, depth + 1);
+		printSymbol(symbol->rhs, depth + 1);
 		symbol = symbol->next;
 	}
 	return;
@@ -100,10 +97,20 @@ int main(int argc, char** argv)
 	char* data = read(argv[1]);
 	// parse the file into organized structures
 	struct Symbol* symbols = parse(data);
-	printSymbol(symbols);
+	printSymbol(symbols, 0);
 	printf("\n");
 	// generate assembly
 	struct String* assembly = compile(symbols);
 	// write to file
-	return write("out.s", assembly);
+	size_t numBytes = write("out.s", assembly);
+	if (numBytes)
+	{
+		printf("%i bytes written\n", numBytes);
+		return 0;
+	}
+	else
+	{
+		printf("Error: no bytes written\n");
+		return 1;
+	}
 }

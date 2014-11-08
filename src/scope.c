@@ -1,8 +1,8 @@
 /* =============================================================================
- * @file read.c
+ * @file scope.c
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Contains a function to load files into memory.
+ * @date 4 Nov 2014
+ * @brief Implementation of Symbol related functions.
  *
  * This file is part of MCC.
  *
@@ -31,33 +31,60 @@
  * THE SOFTWARE.
  * ========================================================================== */
 
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "string.h"
+#include "scope.h"
+
 
 /***************************************************************************//**
- * The contents of data are written to the file specified by fileName. It
- * returns the number of bytes written.
+ *
+ * @param argc The number of command line arguments.
+ *
+ * @param argv An array containing the command line arguments.
+ *
+ * @return The error level. 0 means no error.
  ******************************************************************************/
-size_t write(char* fileName, struct String* data)
+struct Scope* newScope()
 {
-	FILE* file = NULL;
+	struct Scope* scope = malloc(sizeof(struct Scope));
+	scope->bottom = 0;
+	scope->next = NULL;
+	return scope;
+}
 
-	// open file
-	file = fopen(fileName, "w");
-	if (file)
+void deleteScope(struct Scope* scope)
+{
+	if (scope != NULL)
+		free(scope);
+	return;
+}
+
+void addScope(struct Scope* base, struct Scope* scope)
+{
+	base->next = scope;
+}
+
+int getOffset(struct Scope* scope, int varID)
+{
+	// for all others, ebp < scopeOffset (more negative)
+	int ebp = scope->offset;
+	while (scope)
 	{
-		// write to file
-		size_t numBytes = 0;
-		while (data)
+		// they should be negative because the stack grows down
+		if (scope->variables[varID] < 0)
 		{
-			// only write if not empty
-			if (data->contents)
-				numBytes += fprintf(file, "%s", data->contents);
-			data = data->next;
+			return scope->offset - ebp + scope->variables[varID];
 		}
-		return numBytes;
+		scope = scope->next;
 	}
 
+	// variable does not exist
 	return 0;
+}
+
+void addVariable(struct Scope* scope, int id, size_t size)
+{
+	scope->bottom += size;
+	scope->variables[id] = scope->bottom;
 }
