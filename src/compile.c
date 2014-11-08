@@ -73,9 +73,9 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 			// results stored in %eax
 			case VARIABLE:
 				if (pass == VAL)
-					sprintf(buffer, "\tmov %i(%ebp),%%eax\n", getOffset(scope, symbols->id));
+					sprintf(buffer, "\tmov %i(%%ebp),%%eax\n", getOffset(scope, symbols->id));
 				else
-					sprintf(buffer, "\tlea %i(%ebp),%%eax\n", getOffset(scope, symbols->id));
+					sprintf(buffer, "\tlea %i(%%ebp),%%eax\n", getOffset(scope, symbols->id));
 				addString(current, getString(buffer));
 				break;
 			case STRING: // strings are stored as "STR#:" where # is the id
@@ -134,7 +134,11 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 			case FUNCTION: // lhs: parameters; rhs: instructions
 			{
 				// header
-				addString(current, getString("\t\n"));
+				addString(current, getString("\t.text\n"));
+				sprintf(buffer, "\t.globl %s\n", symbols->name);
+				addString(current, getString(buffer));
+				sprintf(buffer, "\t.type %s, @function\n", symbols->name);
+				addString(current, getString(buffer));
 				// label
 				sprintf(buffer, "%s:\n", symbols->name);
 				addString(current, getString(buffer));

@@ -62,8 +62,9 @@ struct String* getString(char* array)
 {
 	struct String* string = malloc(sizeof(struct String));
 	string->size = strlen(array);
-	string->contents = malloc(string->size);
+	string->contents = malloc(string->size + 1);
 	strcpy(string->contents, array);
+	string->contents[string->size] = '\0';
 	string->next = NULL;
 	return string;
 }
