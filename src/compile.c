@@ -195,11 +195,14 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				unsigned int parameterIndex = 0;
 				while (parameter)
 				{
-					// declare: reference to var is stored in %eax
-					addString(current, getAssembly(parameter, VAL));
-					// assign: +8 because we push %ebp and instruction pointer
-					sprintf(buffer, "\tmov %%eax,%i(%%ebp)\n", 4 * parameterIndex + 8);
+					// declare: reference to var is stored in %eax and pushed
+					addString(current, getAssembly(parameter, REF));
+					addString(current, getString("\tmov %eax,%ecx\n"));
+					// evaluate argument: +8 because we push %ebp and instruction pointer
+					sprintf(buffer, "\tmov %i(%%ebp),%%eax\n", 4 * parameterIndex + 8);
 					addString(current, getString(buffer));
+					// assign
+					addString(current, getString("\tmov %eax,(%ecx)\n"));
 					parameterIndex++;
 					parameter = parameter->next;
 				}
