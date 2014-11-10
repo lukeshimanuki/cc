@@ -49,6 +49,7 @@ struct Scope* newScope()
 {
 	struct Scope* scope = malloc(sizeof(struct Scope));
 	scope->bottom = 0;
+	scope->offset = 0;
 	scope->next = NULL;
 	return scope;
 }
@@ -60,8 +61,10 @@ void deleteScope(struct Scope* scope)
 	return;
 }
 
-void addScope(struct Scope* base, struct Scope* scope)
+void addScope(struct Scope* base, size_t offset)
 {
+	struct Scope* scope = newScope();
+	scope->offset = base->bottom + offset;
 	base->next = scope;
 }
 
@@ -71,16 +74,16 @@ int getOffset(struct Scope* scope, int varID)
 	int ebp = scope->offset;
 	while (scope)
 	{
-		// they should be negative because the stack grows down
-		if (scope->variables[varID] < 0)
+		// if it exists
+		if (scope->variables[varID] > 0)
 		{
-			return scope->offset - ebp + scope->variables[varID];
+			return scope->offset - ebp - scope->variables[varID];
 		}
 		scope = scope->next;
 	}
 
 	// variable does not exist
-	return 0;
+	return -15;
 }
 
 void addVariable(struct Scope* scope, int id, size_t size)

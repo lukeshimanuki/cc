@@ -46,9 +46,9 @@ void printSymbol(struct Symbol* symbol, int depth)
 			printf("\t");
 		switch (symbol->type)
 		{
-			case VARIABLE: printf("var "); break;
-			case STRING: printf("str "); break;
-			case VALUE: printf("val "); break;
+			case VARIABLE: printf("var %i %s ", symbol->id, symbol->name); break;
+			case STRING: printf("str %i \"%s\" ", symbol->id, symbol->string); break;
+			case VALUE: printf("val %i ", symbol->value); break;
 			case TYPE: printf("type "); break;
 			case DECLARE: printf("dec "); break;
 			case ASSIGN: printf("assi "); break;

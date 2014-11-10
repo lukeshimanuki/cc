@@ -51,6 +51,7 @@ struct String* data = NULL;
 
 struct String* compile(struct Symbol* symbols)
 {
+	scope = newScope();
 	data = newString(0);
 	struct String* text = NULL;
 	while (symbols)
@@ -72,8 +73,6 @@ struct String* compile(struct Symbol* symbols)
 // but the string list is iterative
 struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 {
-	if (!scope)
-		scope = newScope();
 	struct String* assembly = NULL;
 	if (symbols)
 	{
@@ -86,7 +85,8 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 		{
 			// results stored in %eax
 			case VARIABLE:
-				addString(current, getString("\t# var\n"));
+				sprintf(buffer, "\t# var %i %s\n", symbols->id, symbols->name);
+				addString(current, getString(buffer));
 				if (pass == VAL)
 					sprintf(buffer, "\tmov %i(%%ebp),%%eax\n", getOffset(scope, symbols->id));
 				else
@@ -114,7 +114,8 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString("\t# type\n"));
 				break;
 			case DECLARE:
-				addString(current, getString("\t# dec\n"));
+				sprintf(buffer, "\t# dec %i %s\n", symbols->rhs->id, symbols->rhs->name);
+				addString(current, getString(buffer));
 				addString(current, getString("\tsub $4,%esp\n"));
 				if (pass = VAL)
 					addString(current, getString("\tmov (%esp),%eax\n"));

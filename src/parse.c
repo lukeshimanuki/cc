@@ -158,6 +158,7 @@ struct Symbol* translate(char* data)
 					// create new name
 					names[id] = malloc(strlen(word) + 1);
 					strcpy(names[id], word);
+					name->id = numNames;
 					numNames++;
 				}
 				addSymbol(symbols, name);
@@ -315,7 +316,7 @@ struct Symbol* combine(struct Symbol* symbols)
 		}
 		current = current->next;
 	}
-	// declare: type, rhs
+	// declare: type, variable
 	current = symbols;
 	while (current && current->next)
 	{

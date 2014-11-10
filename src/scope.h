@@ -60,7 +60,7 @@ struct Scope* newScope();
 
 void deleteScope(struct Scope* scope);
 
-void addScope(struct Scope* base, struct Scope* next);
+void addScope(struct Scope* base, size_t offset);
 
 // returns distance from current %ebp
 int getOffset(struct Scope* scope, int varID);
