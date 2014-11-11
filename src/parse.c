@@ -332,8 +332,24 @@ struct Symbol* combine(struct Symbol* symbols)
 		current = current->next;
 	}
 	// mult/div/mod: prev, lhs, operator, rhs
-	// doesn't work as first in line (cuz needs prev)
 	current = symbols;
+	// if at beginning, combine by copy instead of modifying pointer
+	if (current && current->next && (current->next->type == ADD || current->next->type == SUBTRACT) && current->next->next)
+	{
+		// find lhs and rhs
+		struct Symbol* lhs = newSymbol(BLANK);
+		memcpy(lhs, current, sizeof(struct Symbol));
+		struct Symbol* rhs = current->next->next;
+		// copy operator to current
+		memcpy(current, current->next, sizeof(struct Symbol));
+		// set lhs and rhs
+		current->lhs = lhs;
+		current->rhs = rhs;
+		current->next = rhs->next;
+		lhs->next = NULL;
+		rhs->next = NULL;
+	}
+	// if in middle, combine by moving pointers
 	while (current && current->next && current->next->next && current->next->next->next)
 	{
 		struct Symbol* operator = current->next->next;
@@ -351,8 +367,24 @@ struct Symbol* combine(struct Symbol* symbols)
 		current = current->next;
 	}
 	// add/sub: prev, lhs, operator, rhs
-	// doesn't work as first in line (cuz needs prev)
 	current = symbols;
+	// if at beginning, combine by copy instead of modifying pointer
+	if (current && current->next && (current->next->type == ADD || current->next->type == SUBTRACT) && current->next->next)
+	{
+		// find lhs and rhs
+		struct Symbol* lhs = newSymbol(BLANK);
+		memcpy(lhs, current, sizeof(struct Symbol));
+		struct Symbol* rhs = current->next->next;
+		// copy operator to current
+		memcpy(current, current->next, sizeof(struct Symbol));
+		// set lhs and rhs
+		current->lhs = lhs;
+		current->rhs = rhs;
+		current->next = rhs->next;
+		lhs->next = NULL;
+		rhs->next = NULL;
+	}
+	// if in middle, combine by moving pointers
 	while (current && current->next && current->next->next && current->next->next->next)
 	{
 		struct Symbol* operator = current->next->next;

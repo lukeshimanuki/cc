@@ -172,6 +172,23 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString("\tmov $0,%edx\n"));
 				addString(current, getString("\tidiv %ecx\n"));
 				break;
+			case PARENTHESES: // rhs: symbol
+				addString(current, getString("\t# paren\n"));
+				if (symbols->rhs)
+					addString(current, getAssembly(symbols->rhs, pass));
+				break;
+			case BRACKET: // rhs: instructions (arrays are given a separate symbol)
+			{
+	 			addString(current, getString("\t# brack\n"));
+				// TODO: implement scoping
+				struct Symbol* symbol = symbols->rhs;
+				while (symbol)
+				{
+					addString(current, getAssembly(symbol, VAL));
+					symbol = symbol->next;
+				}
+				break;
+			}
 			case FUNCTION: // lhs: parameters; rhs: instructions
 			{
 				addString(current, getString("\t# func\n"));

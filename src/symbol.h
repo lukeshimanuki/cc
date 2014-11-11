@@ -51,6 +51,7 @@ struct Symbol
 		STRING,
 		VALUE,
 		TYPE,
+		DEREFERENCE,
 
 		DECLARE,
 		ASSIGN,
