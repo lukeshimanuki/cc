@@ -180,4 +180,6 @@ void addSymbol(struct Symbol* dest, struct Symbol* symbol);
 
 char* operatorString(enum SymbolType operatorID);
 
+struct Symbol* reverseSymbol(struct Symbol* root);
+
 #endif /* __SYMBOL_H__ */

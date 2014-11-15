@@ -138,3 +138,25 @@ char* operatorString(enum SymbolType operatorID)
 		case BLANK: return "garbage";
 	}
 }
+
+struct Symbol* reverseSymbol(struct Symbol* root)
+{
+	struct Symbol* newRoot = NULL;
+	while (root)
+	{
+		// flip operands
+		struct Symbol* lhs = root->lhs;
+		root->lhs = root->rhs;
+		root->rhs = lhs;
+		// reverse operand contents
+		root->lhs = reverseSymbol(root->lhs);
+		root->rhs = reverseSymbol(root->rhs);
+
+		// flip ordering
+		struct Symbol* next = root->next;
+		root->next = newRoot;
+		newRoot = root;
+		root = next;
+	}
+	return newRoot;
+}

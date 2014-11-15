@@ -197,17 +197,23 @@ enum Pattern
 	TERNARY
 };
 
-void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType type);
+enum Direction
+{
+	RIGHT,
+	LEFT
+};
+
+struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Direction direction, enum SymbolType type);
 
 // looks for patterns and combines
 struct Symbol* combine(struct Symbol* symbols)
 {
 	struct Symbol* current;
 
-	findPattern(symbols, CONTAINER, PARENTHESES);
-	findPattern(symbols, CONTAINER, BRACKET);
+	symbols = findPattern(symbols, CONTAINER, 0, PARENTHESES);
+	symbols = findPattern(symbols, CONTAINER, 0, BRACKET);
 	// only combines the inside of braces, does not connect to lhs
-	findPattern(symbols, CONTAINER, SUBSCRIPT);
+	symbols = findPattern(symbols, CONTAINER, 0, SUBSCRIPT);
 
 	// functions: type, variable, parentheses, bracket
 	current = symbols;
@@ -242,9 +248,7 @@ struct Symbol* combine(struct Symbol* symbols)
 		current = current->next;
 	}
 	// call: variable, parentheses
-	current = symbols;
-	while (current && current->next)
-	{
+	current = symbols; while (current && current->next) {
 		if (current->type == VARIABLE && current->next->type == PARENTHESES)
 		{
 			struct Symbol* paren = current->next;
@@ -271,67 +275,66 @@ struct Symbol* combine(struct Symbol* symbols)
 		current = current->next;
 	}
 
-	findPattern(symbols, UNARY_POST, INCREMENT_POST);
-	findPattern(symbols, UNARY_POST, DECREMENT_POST);
-	findPattern(symbols, BINARY, MEMBER);
-	findPattern(symbols, BINARY, PTR_MEMBER);
+	symbols = findPattern(symbols, UNARY_POST, RIGHT, INCREMENT_POST);
+	symbols = findPattern(symbols, UNARY_POST, RIGHT, DECREMENT_POST);
+	symbols = findPattern(symbols, BINARY, RIGHT, MEMBER);
+	symbols = findPattern(symbols, BINARY, RIGHT, PTR_MEMBER);
 
-	findPattern(symbols, UNARY_PRE, INCREMENT_PRE);
-	findPattern(symbols, UNARY_PRE, DECREMENT_PRE);
-//	findPattern(symbols, UNARY_PRE, UPLUS);
-//	findPattern(symbols, UNARY_PRE, UMINUS);
-	findPattern(symbols, UNARY_PRE, NOT);
-	findPattern(symbols, UNARY_PRE, BNOT);
-//	findPattern(symbols, UNARY_PRE, CAST);
-//	findPattern(symbols, UNARY_PRE, DEREFERENCE);
-	findPattern(symbols, UNARY_PRE, ADDRESS);
-//	findPattern(symbols, UNARY_PRE, SIZEOF);
-
-	findPattern(symbols, BINARY, MULTIPLY);
-	findPattern(symbols, BINARY, DIVIDE);
-	findPattern(symbols, BINARY, MODULUS);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, INCREMENT_PRE);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, DECREMENT_PRE);
+//	symbols = findPattern(symbols, UNARY_PRE, LEFT, UPLUS);
+//	symbols = findPattern(symbols, UNARY_PRE, LEFT, UMINUS);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, NOT);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, BNOT);
+//	symbols = findPattern(symbols, UNARY_PRE, LEFT, CAST);
+//	symbols = findPattern(symbols, UNARY_PRE, LEFT, DEREFERENCE);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, ADDRESS);
+//	symbols = findPattern(symbols, UNARY_PRE, LEFT, SIZEOF); 
+	symbols = findPattern(symbols, BINARY, RIGHT, MULTIPLY);
+	symbols = findPattern(symbols, BINARY, RIGHT, DIVIDE);
+	symbols = findPattern(symbols, BINARY, RIGHT, MODULUS);
 	
-	findPattern(symbols, BINARY, ADD);
-	findPattern(symbols, BINARY, SUBTRACT);
+	symbols = findPattern(symbols, BINARY, RIGHT, ADD);
+	symbols = findPattern(symbols, BINARY, RIGHT, SUBTRACT);
 
-	findPattern(symbols, BINARY, LSHIFT);
-	findPattern(symbols, BINARY, RSHIFT);
+	symbols = findPattern(symbols, BINARY, RIGHT, LSHIFT);
+	symbols = findPattern(symbols, BINARY, RIGHT, RSHIFT);
 
-	findPattern(symbols, BINARY, LESS);
-	findPattern(symbols, BINARY, LESS_OR_EQUAL);
-	findPattern(symbols, BINARY, GREATER);
-	findPattern(symbols, BINARY, GREATER_OR_EQUAL);
+	symbols = findPattern(symbols, BINARY, RIGHT, LESS);
+	symbols = findPattern(symbols, BINARY, RIGHT, LESS_OR_EQUAL);
+	symbols = findPattern(symbols, BINARY, RIGHT, GREATER);
+	symbols = findPattern(symbols, BINARY, RIGHT, GREATER_OR_EQUAL);
 	
-	findPattern(symbols, BINARY, EQUAL);
-	findPattern(symbols, BINARY, NEQUAL);
+	symbols = findPattern(symbols, BINARY, RIGHT, EQUAL);
+	symbols = findPattern(symbols, BINARY, RIGHT, NEQUAL);
 
-	findPattern(symbols, BINARY, BAND);
+	symbols = findPattern(symbols, BINARY, RIGHT, BAND);
 	
-	findPattern(symbols, BINARY, BXOR);
+	symbols = findPattern(symbols, BINARY, RIGHT, BXOR);
 
-	findPattern(symbols, BINARY, BOR);
+	symbols = findPattern(symbols, BINARY, RIGHT, BOR);
 
-	findPattern(symbols, BINARY, AND);
+	symbols = findPattern(symbols, BINARY, RIGHT, AND);
 
-	findPattern(symbols, BINARY, OR);
+	symbols = findPattern(symbols, BINARY, RIGHT, OR);
 
-//	findPattern(symbols, BINARY, TERNARY_CONDITIONAL);
+//	symbols = findPattern(symbols, BINARY, LEFT, TERNARY_CONDITIONAL);
 
-	findPattern(symbols, BINARY, ASSIGN);
-	findPattern(symbols, BINARY, AADD);
-	findPattern(symbols, BINARY, ASUBTRACT);
-	findPattern(symbols, BINARY, AMULTIPLY);
-	findPattern(symbols, BINARY, ADIVIDE);
-	findPattern(symbols, BINARY, AMODULUS);
-	findPattern(symbols, BINARY, ALSHIFT);
-	findPattern(symbols, BINARY, ARSHIFT);
-	findPattern(symbols, BINARY, ABAND);
-	findPattern(symbols, BINARY, ABXOR);
-	findPattern(symbols, BINARY, ABOR);
+	symbols = findPattern(symbols, BINARY, LEFT, ASSIGN);
+	symbols = findPattern(symbols, BINARY, LEFT, AADD);
+	symbols = findPattern(symbols, BINARY, LEFT, ASUBTRACT);
+	symbols = findPattern(symbols, BINARY, LEFT, AMULTIPLY);
+	symbols = findPattern(symbols, BINARY, LEFT, ADIVIDE);
+	symbols = findPattern(symbols, BINARY, LEFT, AMODULUS);
+	symbols = findPattern(symbols, BINARY, LEFT, ALSHIFT);
+	symbols = findPattern(symbols, BINARY, LEFT, ARSHIFT);
+	symbols = findPattern(symbols, BINARY, LEFT, ABAND);
+	symbols = findPattern(symbols, BINARY, LEFT, ABXOR);
+	symbols = findPattern(symbols, BINARY, LEFT, ABOR);
 
-//	findPattern(symbols, BINARY, COMMA);
+//	symbols = findPattern(symbols, BINARY, RIGHT, COMMA);
 
-	findPattern(symbols, UNARY_PRE, RETURN);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, RETURN);
 
 	// clean blanks, commas, semicolons
 	current = symbols;
@@ -385,13 +388,13 @@ enum CharType getType(char c)
 	}
 }
 
-void patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close);
-void patternUnaryPost(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias);
-void patternUnaryPre(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias);
-void patternBinary(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias);
-void patternTernary(struct Symbol* symbols, enum SymbolType type, enum SymbolType first, enum SymbolType second);
+struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close);
+struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias);
+struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias);
+struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias);
+struct Symbol* patternTernary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType first, enum SymbolType second);
 
-void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType type)
+struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Direction direction, enum SymbolType type)
 {
 	switch (pattern)
 	{
@@ -417,7 +420,7 @@ void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType t
 					close = type;
 					break;
 			}
-			patternContainer(symbols, type, open, close);
+			return patternContainer(symbols, type, open, close);
 			break;
 		}
 		case UNARY_POST:
@@ -429,7 +432,7 @@ void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType t
 				case DECREMENT_POST: alias = DECREMENT; break;
 				default: alias = type; break;
 			}
-			patternUnaryPost(symbols, type, alias);
+			return patternUnaryPost(symbols, direction, type, alias);
 			break;
 		}
 		case UNARY_PRE:
@@ -445,7 +448,7 @@ void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType t
 				case ADDRESS: alias = AMPERSAND; break;
 				default: alias = type; break;
 			}
-			patternUnaryPre(symbols, type, alias);
+			return patternUnaryPre(symbols, direction, type, alias);
 			break;
 		}
 		case BINARY:
@@ -459,31 +462,30 @@ void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType t
 				case BAND: alias = AMPERSAND; break;
 				default: alias = type; break;
 			}
-			patternBinary(symbols, type, alias);
+			return patternBinary(symbols, direction, type, alias);
 			break;
 		}
 		case TERNARY:
 		{
-/*			enum SymbolType first, second;
+			enum SymbolType first, second;
 			switch (type)
 			{
-				case TERNARY_CONDITIONAL:
+/*				case TERNARY_CONDITIONAL:
 					first = COLON;
 					second = QUESTION;
 					break;
-				default:
+*/				default:
 					first = type;
 					second = type;
 					break;
 			}
-			patternTernary(symbols, type, first, second);
-*/
-			break;
+			return patternTernary(symbols, direction, type, first, second);
 		}
 	}
 }
 
-void patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close)
+// direction doesn't matter
+struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close)
 {
 	struct Symbol* current = symbols;
 	struct Symbol* openSymbols[32];
@@ -517,18 +519,20 @@ void patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolT
 				current = container;
 			}
 			// process contents
-			combine(container->rhs);
+			container->rhs = combine(container->rhs);
 			depth--;
 		}
 		current = current->next;
 	}
+	return symbols;
 }
 
-void patternUnaryPost(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias)
+struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
 {
+	return symbols;
 }
 
-void patternUnaryPre(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias)
+struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
 {
 	struct Symbol* current = symbols;
 	while (current && current->next)
@@ -543,30 +547,39 @@ void patternUnaryPre(struct Symbol* symbols, enum SymbolType type, enum SymbolTy
 		}
 		current = current->next;
 	}
+	return symbols;
 }
 
-void patternBinary(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias)
+void printSymbol(struct Symbol* symbol, int depth);
+
+// if left, reverse before processing, then reverse again
+struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
 {
 	struct Symbol* current = symbols;
-
-	// if at beginning, combine by copy instead of modifying pointer
-	if (current && current->next && current->next->type == alias && current->next->next)
+	struct Symbol* last;
+	
+	if (direction == LEFT)
 	{
+		last = reverseSymbol(current);
+		current = last;
+	}
+
+	// if at beginning
+	while (current && current->next && current->next->type == alias && current->next->next)
+	{
+		struct Symbol* operator = current->next;
 		current->next->type = type;
-		// find lhs and rhs
-		struct Symbol* lhs = newSymbol(BLANK);
-		memcpy(lhs, current, sizeof(struct Symbol));
+		struct Symbol* lhs = current;
 		struct Symbol* rhs = current->next->next;
-		// copy operator to current
-		memcpy(current, current->next, sizeof(struct Symbol));
-		// set lhs and rhs
-		current->lhs = lhs;
-		current->rhs = rhs;
-		current->next = rhs->next;
+		operator->lhs = lhs;
+		operator->rhs = rhs;
+		operator->next = rhs->next;
 		lhs->next = NULL;
 		rhs->next = NULL;
+		current = operator;
+		symbols = operator;
 	}
-	// if in middle, combine by moving pointers
+	// if in middle
 	while (current && current->next && current->next->next && current->next->next->next)
 	{
 		struct Symbol* operator = current->next->next;
@@ -582,10 +595,17 @@ void patternBinary(struct Symbol* symbols, enum SymbolType type, enum SymbolType
 			rhs->next = NULL;
 			current->next = operator;
 		}
-		current = current->next;
+		else current = current->next;
 	}
+
+	if (direction == LEFT)
+	{
+		symbols = reverseSymbol(last);
+	}
+	return symbols;
 }
 
-void patternTernary(struct Symbol* symbols, enum SymbolType type, enum SymbolType first, enum SymbolType second)
+struct Symbol* patternTernary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType first, enum SymbolType second)
 {
+	return symbols;
 }
