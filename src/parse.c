@@ -188,88 +188,27 @@ struct Symbol* translate(char* data)
 	return symbols;
 }
 
+enum Pattern
+{
+	CONTAINER,
+	UNARY_POST,
+	UNARY_PRE,
+	BINARY,
+	TERNARY
+};
+
+void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType type);
 
 // looks for patterns and combines
 struct Symbol* combine(struct Symbol* symbols)
 {
 	struct Symbol* current;
 
-	// parentheses: bparen, symbols, eparen
-	current = symbols;
-	struct Symbol* parentheses[32];
-	int numParentheses = 0;
-	while (current)
-	{
-		// check if it is (
-		if (current->type == BPAREN)
-		{
-			parentheses[numParentheses] = current;
-			numParentheses++;
-		}
-		// check if it is )
-		if (current->next && current->next->type == EPAREN)
-		{
-			// connect it to last (: set rhs to inside, next to after
-			struct Symbol* paren = parentheses[numParentheses - 1];
-			paren->type = PARENTHESES;
-			// check if empty
-			if (current == paren)
-			{
-				struct Symbol* eparen = current->next;
-				paren->next = current->next->next;
-				deleteSymbol(eparen);
-			}
-			else
-			{
-				paren->rhs = paren->next;
-				paren->next = current->next->next;
-				current->next = NULL;
-				current = paren;
-			}
-			// process contents
-			combine(paren->rhs);
-			numParentheses--;
-		}
-		current = current->next;
-	}
-	// brackets: bbrack, symbols, ebrack
-	current = symbols;
-	struct Symbol* brackets[32];
-	int numBrackets = 0;
-	while (current)
-	{
-		// check if it is {
-		if (current->type == BBRACK)
-		{
-			brackets[numBrackets] = current;
-			numBrackets++;
-		}
-		// check if it is }
-		if (current->next && current->next->type == EBRACK)
-		{
-			// connect it to last {: set rhs to inside, next to after
-			struct Symbol* bracket = brackets[numBrackets - 1];
-			bracket->type = BRACKET;
-			// check if empty
-			if (current == bracket)
-			{
-				struct Symbol* ebrack = current->next;
-				bracket->next = current->next->next;
-				deleteSymbol(ebrack);
-			}
-			else
-			{
-				bracket->rhs = bracket->next;
-				bracket->next = current->next->next;
-				current->next = NULL;
-				current = bracket;
-			}
-			// process contents
-			combine(bracket->rhs);
-			numBrackets--;
-		}
-		current = current->next;
-	}
+	findPattern(symbols, CONTAINER, PARENTHESES);
+	findPattern(symbols, CONTAINER, BRACKET);
+	// only combines the inside of braces, does not connect to lhs
+	findPattern(symbols, CONTAINER, SUBSCRIPT);
+
 	// functions: type, variable, parentheses, bracket
 	current = symbols;
 	while (current)
@@ -331,123 +270,69 @@ struct Symbol* combine(struct Symbol* symbols)
 		}
 		current = current->next;
 	}
-	// mult/div/mod: prev, lhs, operator, rhs
-	current = symbols;
-	// if at beginning, combine by copy instead of modifying pointer
-	if (current && current->next && (current->next->type == ADD || current->next->type == SUBTRACT) && current->next->next)
-	{
-		// find lhs and rhs
-		struct Symbol* lhs = newSymbol(BLANK);
-		memcpy(lhs, current, sizeof(struct Symbol));
-		struct Symbol* rhs = current->next->next;
-		// copy operator to current
-		memcpy(current, current->next, sizeof(struct Symbol));
-		// set lhs and rhs
-		current->lhs = lhs;
-		current->rhs = rhs;
-		current->next = rhs->next;
-		lhs->next = NULL;
-		rhs->next = NULL;
-	}
-	// if in middle, combine by moving pointers
-	while (current && current->next && current->next->next && current->next->next->next)
-	{
-		struct Symbol* operator = current->next->next;
-		struct Symbol* lhs = current->next;
-		struct Symbol* rhs = current->next->next->next;
-		if (operator->type == MULTIPLY || operator->type == DIVIDE) // insert mod
-		{
-			operator->lhs = lhs;
-			operator->rhs = rhs;
-			operator->next = rhs->next;
-			lhs->next = NULL;
-			rhs->next = NULL;
-			current->next = operator;
-		}
-		current = current->next;
-	}
-	// add/sub: prev, lhs, operator, rhs
-	current = symbols;
-	// if at beginning, combine by copy instead of modifying pointer
-	if (current && current->next && (current->next->type == ADD || current->next->type == SUBTRACT) && current->next->next)
-	{
-		// find lhs and rhs
-		struct Symbol* lhs = newSymbol(BLANK);
-		memcpy(lhs, current, sizeof(struct Symbol));
-		struct Symbol* rhs = current->next->next;
-		// copy operator to current
-		memcpy(current, current->next, sizeof(struct Symbol));
-		// set lhs and rhs
-		current->lhs = lhs;
-		current->rhs = rhs;
-		current->next = rhs->next;
-		lhs->next = NULL;
-		rhs->next = NULL;
-	}
-	// if in middle, combine by moving pointers
-	while (current && current->next && current->next->next && current->next->next->next)
-	{
-		struct Symbol* operator = current->next->next;
-		struct Symbol* lhs = current->next;
-		struct Symbol* rhs = current->next->next->next;
-		if (operator->type == ADD || operator->type == SUBTRACT)
-		{
-			operator->lhs = lhs;
-			operator->rhs = rhs;
-			operator->next = rhs->next;
-			lhs->next = NULL;
-			rhs->next = NULL;
-			current->next = operator;
-		}
-		current = current->next;
-	}
-	// assign: prev, lhs, assign, rhs
-	current = symbols;
-	// if at beginning, combine by copy instead of modifying pointer
-	if (current && current->next && current->next->type == ASSIGN && current->next->next)
-	{
-		// find lhs and rhs
-		struct Symbol* lhs = newSymbol(BLANK);
-		memcpy(lhs, current, sizeof(struct Symbol));
-		struct Symbol* rhs = current->next->next;
-		// copy assign to current
-		memcpy(current, current->next, sizeof(struct Symbol));
-		// set lhs and rhs
-		current->lhs = lhs;
-		current->rhs = rhs;
-		current->next = rhs->next;
-		lhs->next = NULL;
-		rhs->next = NULL;
-	}
-	// if in middle, combine by moving pointers
-	while (current && current->next && current->next->next && current->next->next->next)
-	{
-		struct Symbol* assign = current->next->next;
-		if (assign->type == ASSIGN)
-		{
-			struct Symbol* lhs = current->next;
-			struct Symbol* rhs = current->next->next->next;
-			assign->lhs = lhs;
-			assign->rhs = rhs;
-			assign->next = rhs->next;
-			lhs->next = NULL;
-			rhs->next = NULL;
-			current->next = assign;
-		}
-		current = current->next;
-	}
-	// return: ret, (optional rhs)
-	current = symbols;
-	while (current)
-	{
-		if (current->type == RETURN && current->next && current->next->type != SEMICOLON)
-		{
-			current->rhs = current->next;
-			current->next = current->rhs->next;
-			current->rhs->next = NULL;
-		}
-		current = current->next;
-	}
+
+	findPattern(symbols, UNARY_POST, INCREMENT_POST);
+	findPattern(symbols, UNARY_POST, DECREMENT_POST);
+	findPattern(symbols, BINARY, MEMBER);
+	findPattern(symbols, BINARY, PTR_MEMBER);
+
+	findPattern(symbols, UNARY_PRE, INCREMENT_PRE);
+	findPattern(symbols, UNARY_PRE, DECREMENT_PRE);
+//	findPattern(symbols, UNARY_PRE, UPLUS);
+//	findPattern(symbols, UNARY_PRE, UMINUS);
+	findPattern(symbols, UNARY_PRE, NOT);
+	findPattern(symbols, UNARY_PRE, BNOT);
+//	findPattern(symbols, UNARY_PRE, CAST);
+//	findPattern(symbols, UNARY_PRE, DEREFERENCE);
+	findPattern(symbols, UNARY_PRE, ADDRESS);
+//	findPattern(symbols, UNARY_PRE, SIZEOF);
+
+	findPattern(symbols, BINARY, MULTIPLY);
+	findPattern(symbols, BINARY, DIVIDE);
+	findPattern(symbols, BINARY, MODULUS);
+	
+	findPattern(symbols, BINARY, ADD);
+	findPattern(symbols, BINARY, SUBTRACT);
+
+	findPattern(symbols, BINARY, LSHIFT);
+	findPattern(symbols, BINARY, RSHIFT);
+
+	findPattern(symbols, BINARY, LESS);
+	findPattern(symbols, BINARY, LESS_OR_EQUAL);
+	findPattern(symbols, BINARY, GREATER);
+	findPattern(symbols, BINARY, GREATER_OR_EQUAL);
+	
+	findPattern(symbols, BINARY, EQUAL);
+	findPattern(symbols, BINARY, NEQUAL);
+
+	findPattern(symbols, BINARY, BAND);
+	
+	findPattern(symbols, BINARY, BXOR);
+
+	findPattern(symbols, BINARY, BOR);
+
+	findPattern(symbols, BINARY, AND);
+
+	findPattern(symbols, BINARY, OR);
+
+//	findPattern(symbols, BINARY, TERNARY_CONDITIONAL);
+
+	findPattern(symbols, BINARY, ASSIGN);
+	findPattern(symbols, BINARY, AADD);
+	findPattern(symbols, BINARY, ASUBTRACT);
+	findPattern(symbols, BINARY, AMULTIPLY);
+	findPattern(symbols, BINARY, ADIVIDE);
+	findPattern(symbols, BINARY, AMODULUS);
+	findPattern(symbols, BINARY, ALSHIFT);
+	findPattern(symbols, BINARY, ARSHIFT);
+	findPattern(symbols, BINARY, ABAND);
+	findPattern(symbols, BINARY, ABXOR);
+	findPattern(symbols, BINARY, ABOR);
+
+//	findPattern(symbols, BINARY, COMMA);
+
+	findPattern(symbols, UNARY_PRE, RETURN);
+
 	// clean blanks, commas, semicolons
 	current = symbols;
 	while (current && (current->type == BLANK || current->type == COMMA || current->type == SEMICOLON))
@@ -498,4 +383,209 @@ enum CharType getType(char c)
 		default:
 			return NORMAL;
 	}
+}
+
+void patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close);
+void patternUnaryPost(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias);
+void patternUnaryPre(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias);
+void patternBinary(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias);
+void patternTernary(struct Symbol* symbols, enum SymbolType type, enum SymbolType first, enum SymbolType second);
+
+void findPattern(struct Symbol* symbols, enum Pattern pattern, enum SymbolType type)
+{
+	switch (pattern)
+	{
+		case CONTAINER:
+		{
+			enum SymbolType open, close;
+			switch (type)
+			{
+				case PARENTHESES:
+					open = BPAREN;
+					close = EPAREN;
+					break;
+				case BRACKET:
+					open = BBRACK;
+					close = EBRACK;
+					break;
+				case SUBSCRIPT:
+					open = BBRACE;
+					close = EBRACE;
+					break;
+				default:
+					open = type;
+					close = type;
+					break;
+			}
+			patternContainer(symbols, type, open, close);
+			break;
+		}
+		case UNARY_POST:
+		{
+			enum SymbolType alias;
+			switch (type)
+			{
+				case INCREMENT_POST: alias = INCREMENT; break;
+				case DECREMENT_POST: alias = DECREMENT; break;
+				default: alias = type; break;
+			}
+			patternUnaryPost(symbols, type, alias);
+			break;
+		}
+		case UNARY_PRE:
+		{
+			enum SymbolType alias;
+			switch (type)
+			{
+				case INCREMENT_PRE: alias = INCREMENT; break;
+				case DECREMENT_PRE: alias = DECREMENT; break;
+				case UPLUS: alias = PLUS; break;
+				case UMINUS: alias = MINUS; break;
+				case DEREFERENCE: alias = ASTERISK; break;
+				case ADDRESS: alias = AMPERSAND; break;
+				default: alias = type; break;
+			}
+			patternUnaryPre(symbols, type, alias);
+			break;
+		}
+		case BINARY:
+		{
+			enum SymbolType alias;
+			switch (type)
+			{
+				case ADD: alias = PLUS; break;
+				case SUBTRACT: alias = MINUS; break;
+				case MULTIPLY: alias = ASTERISK; break;
+				case BAND: alias = AMPERSAND; break;
+				default: alias = type; break;
+			}
+			patternBinary(symbols, type, alias);
+			break;
+		}
+		case TERNARY:
+		{
+/*			enum SymbolType first, second;
+			switch (type)
+			{
+				case TERNARY_CONDITIONAL:
+					first = COLON;
+					second = QUESTION;
+					break;
+				default:
+					first = type;
+					second = type;
+					break;
+			}
+			patternTernary(symbols, type, first, second);
+*/
+			break;
+		}
+	}
+}
+
+void patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close)
+{
+	struct Symbol* current = symbols;
+	struct Symbol* openSymbols[32];
+	int depth = 0;
+	while (current)
+	{
+		// check if it is open symbol
+		if (current->type == open)
+		{
+			openSymbols[depth] = current;
+			depth++;
+		}
+		// check if it is close symbol
+		if (current->next && current->next->type == close)
+		{
+			// connect it to last open: set rhs to inside, next to after
+			struct Symbol* container = openSymbols[depth - 1];
+			container->type = type;
+			// check if empty
+			if (current == container)
+			{
+				struct Symbol* ebrack = current->next;
+				container->next = current->next->next;
+				deleteSymbol(ebrack);
+			}
+			else
+			{
+				container->rhs = container->next;
+				container->next = current->next->next;
+				current->next = NULL;
+				current = container;
+			}
+			// process contents
+			combine(container->rhs);
+			depth--;
+		}
+		current = current->next;
+	}
+}
+
+void patternUnaryPost(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias)
+{
+}
+
+void patternUnaryPre(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias)
+{
+	struct Symbol* current = symbols;
+	while (current && current->next)
+	{
+		if (current->type == alias)
+		{
+			current->type = type;
+			struct Symbol* var = current->next;
+			current->rhs = var;
+			current->next = var->next;
+			var->next = NULL;
+		}
+		current = current->next;
+	}
+}
+
+void patternBinary(struct Symbol* symbols, enum SymbolType type, enum SymbolType alias)
+{
+	struct Symbol* current = symbols;
+
+	// if at beginning, combine by copy instead of modifying pointer
+	if (current && current->next && current->next->type == alias && current->next->next)
+	{
+		current->next->type = type;
+		// find lhs and rhs
+		struct Symbol* lhs = newSymbol(BLANK);
+		memcpy(lhs, current, sizeof(struct Symbol));
+		struct Symbol* rhs = current->next->next;
+		// copy operator to current
+		memcpy(current, current->next, sizeof(struct Symbol));
+		// set lhs and rhs
+		current->lhs = lhs;
+		current->rhs = rhs;
+		current->next = rhs->next;
+		lhs->next = NULL;
+		rhs->next = NULL;
+	}
+	// if in middle, combine by moving pointers
+	while (current && current->next && current->next->next && current->next->next->next)
+	{
+		struct Symbol* operator = current->next->next;
+		if (operator->type == alias)
+		{
+			operator->type = type;
+			struct Symbol* lhs = current->next;
+			struct Symbol* rhs = current->next->next->next;
+			operator->lhs = lhs;
+			operator->rhs = rhs;
+			operator->next = rhs->next;
+			lhs->next = NULL;
+			rhs->next = NULL;
+			current->next = operator;
+		}
+		current = current->next;
+	}
+}
+
+void patternTernary(struct Symbol* symbols, enum SymbolType type, enum SymbolType first, enum SymbolType second)
+{
 }

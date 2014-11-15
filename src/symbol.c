@@ -44,7 +44,7 @@
  *
  * @return The error level. 0 means no error.
  ******************************************************************************/
-struct Symbol* newSymbol(enum Type type)
+struct Symbol* newSymbol(enum SymbolType type)
 {
 	struct Symbol* symbol = malloc(sizeof(struct Symbol));
 	symbol->type = type;
@@ -83,29 +83,58 @@ void addSymbol(struct Symbol* dest, struct Symbol* symbol)
 }
 
 // operatorID is type of symbol, not index of operators[]
-char* operatorString(enum Type operatorID)
+char* operatorString(enum SymbolType operatorID)
 {
 	switch (operatorID)
 	{
+		case TERNARY_CONDITIONAL: return "idk";
+		
+		case ALSHIFT: return "<<=";
+		case ARSHIFT: return ">>=";
+
 		case EQUAL: return "==";
+		case NEQUAL: return "!=";
 		case INCREMENT: return "++";
 		case DECREMENT: return "--";
 		case GREATER_OR_EQUAL: return ">=";
 		case LESS_OR_EQUAL: return "<=";
+		case PTR_MEMBER: return "->";
+		case LSHIFT: return "<<";
+		case RSHIFT: return ">>";
+		case AND: "&&";
+		case OR: "||";
+		case AADD: return "+=";
+		case ASUBTRACT: return "-=";
+		case AMULTIPLY: return "*=";
+		case ADIVIDE: return "/=";
+		case AMODULUS: return "%=";
+		case ABAND: return "&=";
+		case ABXOR: return "^=";
+		case ABOR: return "|=";
 
 		case ASSIGN: return "=";
 		case BPAREN: return "(";
 		case EPAREN: return ")";
 		case BBRACK: return "{";
 		case EBRACK: return "}";
+		case BBRACE: return "[";
+		case EBRACE: return "]";
 		case SEMICOLON: return ";";
 		case COMMA: return ",";
-		case ADD: return "+";
-		case SUBTRACT: return "-";
-		case MULTIPLY: return "*";
+		case PLUS: return "+";
+		case MINUS: return "-";
+		case ASTERISK: return "*";
 		case DIVIDE: return "/";
+		case MEMBER: return ".";
 		case GREATER: return ">";
 		case LESS: return "<";
+		case NOT: return "!";
+		case BNOT: return "~";
+		case AMPERSAND: return "&";
+		case MODULUS: "%";
+		case BXOR: "^";
+		case BOR: "|";
+		
 		case BLANK: return "garbage";
 	}
 }

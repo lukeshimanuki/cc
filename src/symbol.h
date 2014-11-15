@@ -45,44 +45,112 @@ struct Symbol
 {
 	//! The type of symbol.
 	/*! details... */
-	enum Type
+	enum SymbolType
 	{
+		// special stuff
 		VARIABLE, /*!< description */
 		STRING,
 		VALUE,
 		TYPE,
-		DEREFERENCE,
-
 		DECLARE,
-		ASSIGN,
-
-		ADD,
-		SUBTRACT,
-		MULTIPLY,
-		DIVIDE,
-		INCREMENT,
-		DECREMENT,
-
-		EQUAL,
-		GREATER,
-		LESS,
-		GREATER_OR_EQUAL,
-		LESS_OR_EQUAL,
-
+		
 		PARENTHESES,
 		BRACKET,
 
 		FUNCTION,
-		CALL,
 		RETURN,
 
+
+		// 1 lr
+		INCREMENT_POST,
+		DECREMENT_POST,
+		CALL,
+		SUBSCRIPT,
+		MEMBER,
+		PTR_MEMBER,
+//		COMPOUND_LITERAL, // C99
+
+		// 2 rl
+		INCREMENT_PRE,
+		DECREMENT_PRE,
+		UPLUS,
+		UMINUS,
+		NOT,
+		BNOT,
+		CAST,
+		DEREFERENCE,
+		ADDRESS,
+		SIZEOF,
+//		ALIGN, // C11
+		
+		// 3 lr
+		MULTIPLY,
+		DIVIDE,
+		MODULUS,
+
+		// 4
+		ADD,
+		SUBTRACT,
+
+		// 5
+		LSHIFT,
+		RSHIFT,
+
+		// 6
+		LESS,
+		LESS_OR_EQUAL,
+		GREATER,
+		GREATER_OR_EQUAL,
+
+		// 7
+		EQUAL,
+		NEQUAL,
+
+		// 8
+		BAND,
+		// 9
+		BXOR,
+		// 10
+		BOR,
+
+		// 11
+		AND,
+		// 12
+		OR,
+
+		// 13 rl
+		TERNARY_CONDITIONAL,
+
+		// 14
+		ASSIGN,
+		AADD,
+		ASUBTRACT,
+		AMULTIPLY,
+		ADIVIDE,
+		AMODULUS,
+		ALSHIFT,
+		ARSHIFT,
+		ABAND,
+		ABXOR,
+		ABOR,
+
+		// 15 lr
+		COMMA,
+
 		// only used for parsing
+		ASTERISK,
+		PLUS,
+		MINUS,
+		AMPERSAND,
+		INCREMENT,
+		DECREMENT,
 		BPAREN,
 		EPAREN,
 		BBRACK,
 		EBRACK,
+		BBRACE,
+		EBRACE,
 		SEMICOLON,
-		COMMA,
 
 		// placeholders
 		BLANK
@@ -102,7 +170,7 @@ struct Symbol
 /***************************************************************************//**
  * @brief Loads a file into a buffer.
  ******************************************************************************/
-struct Symbol* newSymbol(enum Type type);
+struct Symbol* newSymbol(enum SymbolType type);
 
 void deleteSymbol(struct Symbol* symbol);
 
@@ -110,6 +178,6 @@ void deleteSymbolList(struct Symbol* base);
 
 void addSymbol(struct Symbol* dest, struct Symbol* symbol);
 
-char* operatorString(enum Type operatorID);
+char* operatorString(enum SymbolType operatorID);
 
 #endif /* __SYMBOL_H__ */

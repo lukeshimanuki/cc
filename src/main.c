@@ -58,11 +58,14 @@ void printSymbol(struct Symbol* symbol, int depth)
 			case DIVIDE: printf("div "); break;
 			case PARENTHESES: printf("paren "); break;
 			case BRACKET: printf("brack "); break;
-			case FUNCTION: printf("func "); break;
+			case FUNCTION: printf("func %s", symbol->name); break;
 			case CALL: printf("call %s ", symbol->name); break;
 			case RETURN: printf("ret "); break;
 			case BLANK: printf("blank "); break;
 
+			case PLUS: printf("plus "); break;
+			case MINUS: printf("minus "); break;
+			case ASTERISK: printf("asterisk "); break;
 			case BPAREN: printf("bparen "); break;
 			case EPAREN: printf("eparen "); break;
 			case BBRACK: printf("bbrack "); break;
