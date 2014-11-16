@@ -529,23 +529,100 @@ struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, en
 
 struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
 {
+	if (direction == RIGHT)
+	{
+		while (symbols && symbols->next && symbols->next->type == alias)
+		{
+			struct Symbol* operator = symbols->next;
+			struct Symbol* operand = symbols;
+			operator->type = type;
+			operator->lhs = operand;
+			operand->next = NULL;
+			symbols = operator;
+		}
+		struct Symbol* current = symbols;
+		while (current && current->next && current->next->next)
+		{
+			struct Symbol* operator = current->next->next;
+			struct Symbol* operand = current->next;
+			if (operator->type == alias)
+			{
+				operator->type = type;
+				operator->lhs = operand;
+				operand->next = NULL;
+				current->next = operator;
+			}
+			else current = current->next;
+		}
+	}
+	else
+	{
+		symbols = reverseSymbol(symbols);
+		struct Symbol* last = symbols;
+		struct Symbol* current = symbols;
+		while (current && current->next)
+		{
+			if (current->type == alias)
+			{
+				current->type = type;
+				struct Symbol* var = current->next;
+				current->lhs = var;
+				current->next = var->next;
+				var->next = NULL;
+			}
+			current = current->next;
+		}
+		symbols = reverseSymbol(last);
+	}
 	return symbols;
 }
 
 struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
 {
-	struct Symbol* current = symbols;
-	while (current && current->next)
+	if (direction == RIGHT)
 	{
-		if (current->type == alias)
+		struct Symbol* current = symbols;
+		while (current && current->next)
 		{
-			current->type = type;
-			struct Symbol* var = current->next;
-			current->rhs = var;
-			current->next = var->next;
-			var->next = NULL;
+			if (current->type == alias)
+			{
+				current->type = type;
+				struct Symbol* var = current->next;
+				current->rhs = var;
+				current->next = var->next;
+				var->next = NULL;
+			}
+			current = current->next;
 		}
-		current = current->next;
+	}
+	else
+	{
+		symbols = reverseSymbol(symbols);
+		struct Symbol* last = symbols;
+		while (symbols && symbols->next && symbols->next->type == alias)
+		{
+			struct Symbol* operator = symbols->next;
+			struct Symbol* operand = symbols;
+			operator->type = type;
+			operator->rhs = operand;
+			operand->next = NULL;
+			symbols = operator;
+		}
+		struct Symbol* current = symbols;
+		while (current && current->next && current->next->next)
+		{
+			struct Symbol* operator = current->next->next;
+			struct Symbol* operand = current->next;
+			if (operator->type == alias)
+			{
+				operator->type = type;
+				operator->lhs = operand;
+				operand->next = NULL;
+				current->next = operator;
+			}
+			else current = current->next;
+		}
+		symbols = reverseSymbol(last);
 	}
 	return symbols;
 }
