@@ -373,6 +373,7 @@ enum CharType getType(char c)
 		case '-':
 		case '*':
 		case '/':
+		case '%':
 		case '=':
 		case '>':
 		case '<':
@@ -380,6 +381,16 @@ enum CharType getType(char c)
 		case ')':
 		case '{':
 		case '}':
+		case '[':
+		case ']':
+		case '&':
+		case '|':
+		case '^':
+		case '!':
+		case '~':
+		case '.':
+		case '?':
+		case ':':
 		case ';':
 		case ',':
 			return SPECIAL;

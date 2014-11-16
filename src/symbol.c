@@ -131,9 +131,11 @@ char* operatorString(enum SymbolType operatorID)
 		case NOT: return "!";
 		case BNOT: return "~";
 		case AMPERSAND: return "&";
-		case MODULUS: "%";
-		case BXOR: "^";
-		case BOR: "|";
+		case MODULUS: return "%";
+		case BXOR: return "^";
+		case BOR: return "|";
+		case QUESTION: return "?";
+		case COLON: return ":";
 		
 		case BLANK: return "garbage";
 	}
