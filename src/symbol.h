@@ -58,8 +58,6 @@ struct Symbol
 		BRACKET,
 
 		FUNCTION,
-		RETURN,
-
 
 		// 1 lr
 		INCREMENT_POST,
@@ -137,6 +135,8 @@ struct Symbol
 		// 15 lr
 		COMMA,
 
+		RETURN,
+		
 		// only used for parsing
 		ASTERISK,
 		PLUS,
@@ -165,6 +165,7 @@ struct Symbol
 
 	struct Symbol* lhs;
 	struct Symbol* rhs;
+	struct Symbol* third; // only for ternary conditional
 
 	struct Symbol* next;
 };

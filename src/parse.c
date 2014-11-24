@@ -318,7 +318,7 @@ struct Symbol* combine(struct Symbol* symbols)
 
 	symbols = findPattern(symbols, BINARY, RIGHT, OR);
 
-//	symbols = findPattern(symbols, BINARY, LEFT, TERNARY_CONDITIONAL);
+	symbols = findPattern(symbols, TERNARY, LEFT, TERNARY_CONDITIONAL);
 
 	symbols = findPattern(symbols, BINARY, LEFT, ASSIGN);
 	symbols = findPattern(symbols, BINARY, LEFT, AADD);
@@ -481,11 +481,11 @@ struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Di
 			enum SymbolType first, second;
 			switch (type)
 			{
-/*				case TERNARY_CONDITIONAL:
-					first = COLON;
-					second = QUESTION;
+				case TERNARY_CONDITIONAL:
+					first = QUESTION;
+					second = COLON;
 					break;
-*/				default:
+				default:
 					first = type;
 					second = type;
 					break;
@@ -638,8 +638,6 @@ struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction,
 	return symbols;
 }
 
-void printSymbol(struct Symbol* symbol, int depth);
-
 // if left, reverse before processing, then reverse again
 struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
 {
@@ -693,7 +691,45 @@ struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, e
 	return symbols;
 }
 
+// ignore dir for now
 struct Symbol* patternTernary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType first, enum SymbolType second)
-{
+{/*
+	while (symbols && symbols->next && symbols->next->type == first && symbols->next->next && symbols->next->next->next && symbols->next->next->next->type == second && symbols->next->next->next->next)
+	{
+		struct Symbol* operator = symbols->next;
+		struct Symbol* extra = symbols->next->next->next;
+		operator->type = type;
+		operator->third = symbols; // third is conditional, first is if true, second is if false
+		operator->lhs = symbols->next->next;
+		operator->rhs = symbols->next->next->next->next;
+		operator->next = operator->rhs->next;
+		operator->third->next = NULL;
+		operator->lhs->next = NULL;
+		operator->rhs->next = NULL;
+		deleteSymbol(extra);
+		symbols = operator;
+	}
+*/
+	// ISSUE: nodes repeat every other cycle
+	struct Symbol* current = symbols;
+	while (current && current->next && current->next->next && current->next->next->next && current->next->next->next->next && current->next->next->next->next->next)
+	{
+		struct Symbol* operator = current->next->next;
+		if (operator->type == first && operator->next->next->type == second)
+		{
+			struct Symbol* extra = symbols->next->next->next->next;
+			operator->type = type;
+			operator->third = symbols->next; // third is conditional, first is if true, second is if false
+			operator->lhs = symbols->next->next->next;
+			operator->rhs = symbols->next->next->next->next->next;
+			operator->next = operator->rhs->next;
+			operator->third->next = NULL;
+			operator->lhs->next = NULL;
+			operator->rhs->next = NULL;
+			deleteSymbol(extra);
+			current->next = operator;
+		}
+		else current = current->next;
+	}
 	return symbols;
 }

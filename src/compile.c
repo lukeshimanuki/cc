@@ -123,55 +123,6 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 					addString(current, getString("\tmov %esp,%eax\n"));
 				addVariable(scope, symbols->rhs->id, 4);
 				break;
-			case ASSIGN:
-				addString(current, getString("\t# assi\n"));
-				// evaluate location and push it (to be popped into %ecx)
-				addString(current, getAssembly(symbols->lhs, REF));
-				addString(current, getString("\tpush %eax\n"));
-				// evaluate value and store it in %eax
-				addString(current, getAssembly(symbols->rhs, VAL));
-				addString(current, getString("\tpop %ecx\n"));
-				// store value in location
-				addString(current, getString("\tmov %eax,(%ecx)\n"));
-				// return the value (which is in %eax)
-				break;
-			case ADD:
-				addString(current, getString("\t# add\n"));
-				// place lhs in %eax and rhs in %ecx
-				addString(current, getAssembly(symbols->rhs, VAL));
-				addString(current, getString("\tpush %eax\n"));
-				addString(current, getAssembly(symbols->lhs, VAL));
-				addString(current, getString("\tpop %ecx\n"));
-				addString(current, getString("\tadd %ecx,%eax\n"));
-				break;
-			case SUBTRACT: // a - b: lhs = a, rhs = b
-				addString(current, getString("\t# sub\n"));
-				// place lhs in %eax and rhs in %ecx
-				addString(current, getAssembly(symbols->rhs, VAL));
-				addString(current, getString("\tpush %eax\n"));
-				addString(current, getAssembly(symbols->lhs, VAL));
-				addString(current, getString("\tpop %ecx\n"));
-				addString(current, getString("\tsub %ecx,%eax\n"));
-				break;
-			case MULTIPLY:
-				addString(current, getString("\t# mult\n"));
-				// place lhs in %eax and rhs in %ecx
-				addString(current, getAssembly(symbols->rhs, VAL));
-				addString(current, getString("\tpush %eax\n"));
-				addString(current, getAssembly(symbols->lhs, VAL));
-				addString(current, getString("\tpop %ecx\n"));
-				addString(current, getString("\timul %ecx,%eax\n"));
-				break;
-			case DIVIDE: // a / b: lhs = a, rhs = b
-				addString(current, getString("\t# div\n"));
-				// place lhs in %eax and rhs in %ecx, %edx = 0
-				addString(current, getAssembly(symbols->rhs, VAL));
-				addString(current, getString("\tpush %eax\n"));
-				addString(current, getAssembly(symbols->lhs, VAL));
-				addString(current, getString("\tpop %ecx\n"));
-				addString(current, getString("\tmov $0,%edx\n"));
-				addString(current, getString("\tidiv %ecx\n"));
-				break;
 			case PARENTHESES: // rhs: symbol
 				addString(current, getString("\t# paren\n"));
 				if (symbols->rhs)
@@ -235,6 +186,14 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				scope = oldScope;
 				break;
 			}
+			
+			// 1
+			/*
+			case INCREMENT_POST: // lhs: operand
+				addString(current, getString("\t# inc post\n"));
+				addString(current, getAssembly(symbols->lhs));
+				
+				break;*/
 			case CALL: // rhs: arguments
 			{
 				addString(current, getString("\t# call\n"));
@@ -265,6 +224,59 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString(buffer));
 				break;
 			}
+
+			// 2
+
+			// 3
+			case MULTIPLY:
+				addString(current, getString("\t# mult\n"));
+				// place lhs in %eax and rhs in %ecx
+				addString(current, getAssembly(symbols->rhs, VAL));
+				addString(current, getString("\tpush %eax\n"));
+				addString(current, getAssembly(symbols->lhs, VAL));
+				addString(current, getString("\tpop %ecx\n"));
+				addString(current, getString("\timul %ecx,%eax\n"));
+				break;
+			case DIVIDE: // a / b: lhs = a, rhs = b
+				addString(current, getString("\t# div\n"));
+				// place lhs in %eax and rhs in %ecx, %edx = 0
+				addString(current, getAssembly(symbols->rhs, VAL));
+				addString(current, getString("\tpush %eax\n"));
+				addString(current, getAssembly(symbols->lhs, VAL));
+				addString(current, getString("\tpop %ecx\n"));
+				addString(current, getString("\tmov $0,%edx\n"));
+				addString(current, getString("\tidiv %ecx\n"));
+				break;
+			case ADD:
+				addString(current, getString("\t# add\n"));
+				// place lhs in %eax and rhs in %ecx
+				addString(current, getAssembly(symbols->rhs, VAL));
+				addString(current, getString("\tpush %eax\n"));
+				addString(current, getAssembly(symbols->lhs, VAL));
+				addString(current, getString("\tpop %ecx\n"));
+				addString(current, getString("\tadd %ecx,%eax\n"));
+				break;
+			case SUBTRACT: // a - b: lhs = a, rhs = b
+				addString(current, getString("\t# sub\n"));
+				// place lhs in %eax and rhs in %ecx
+				addString(current, getAssembly(symbols->rhs, VAL));
+				addString(current, getString("\tpush %eax\n"));
+				addString(current, getAssembly(symbols->lhs, VAL));
+				addString(current, getString("\tpop %ecx\n"));
+				addString(current, getString("\tsub %ecx,%eax\n"));
+				break;
+			case ASSIGN:
+				addString(current, getString("\t# assi\n"));
+				// evaluate location and push it (to be popped into %ecx)
+				addString(current, getAssembly(symbols->lhs, REF));
+				addString(current, getString("\tpush %eax\n"));
+				// evaluate value and store it in %eax
+				addString(current, getAssembly(symbols->rhs, VAL));
+				addString(current, getString("\tpop %ecx\n"));
+				// store value in location
+				addString(current, getString("\tmov %eax,(%ecx)\n"));
+				// return the value (which is in %eax)
+				break;
 			case RETURN:
 				addString(current, getString("\t# ret\n"));
 				// if there is an operand (to the right), store it in %eax

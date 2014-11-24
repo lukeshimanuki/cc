@@ -51,6 +51,7 @@ struct Symbol* newSymbol(enum SymbolType type)
 	symbol->id = 0;
 	symbol->lhs = NULL;
 	symbol->rhs = NULL;
+	symbol->third = NULL;
 	symbol->next = NULL;
 	return symbol;
 }

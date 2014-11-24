@@ -59,6 +59,8 @@ enum SymbolType operators[] =
 	MODULUS,
 	BXOR,
 	BOR,
+	QUESTION,
+	COLON,
 	
 	BLANK
 };

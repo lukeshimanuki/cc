@@ -51,21 +51,37 @@ void printSymbol(struct Symbol* symbol, int depth)
 			case VALUE: printf("val %i ", symbol->value); break;
 			case TYPE: printf("type "); break;
 			case DECLARE: printf("dec "); break;
-			case ASSIGN: printf("assi "); break;
-			case ADD: printf("add "); break;
-			case SUBTRACT: printf("sub "); break;
-			case MULTIPLY: printf("mult "); break;
-			case DIVIDE: printf("div "); break;
 			case PARENTHESES: printf("paren "); break;
 			case BRACKET: printf("brack "); break;
 			case FUNCTION: printf("func %s", symbol->name); break;
+			
+		   // 1
+			case INCREMENT_POST: printf("inc post "); break;
+			case DECREMENT_POST: printf("dec post "); break;
 			case CALL: printf("call %s ", symbol->name); break;
+			case SUBSCRIPT: printf("subscript "); break;
+			case MEMBER: printf("member "); break;
+			case PTR_MEMBER: printf("ptr member "); break;
+
+			// 3
+			case MULTIPLY: printf("mult "); break;
+			case DIVIDE: printf("div "); break;
+
+			// 4
+			case ADD: printf("add "); break;
+			case SUBTRACT: printf("sub "); break;
+		
+			case EQUAL: printf("equal "); break;
+			case TERNARY_CONDITIONAL: printf("tern cond "); break;
+			case ASSIGN: printf("assi "); break;
 			case RETURN: printf("ret "); break;
 			case BLANK: printf("blank "); break;
 
 			case PLUS: printf("plus "); break;
 			case MINUS: printf("minus "); break;
 			case ASTERISK: printf("asterisk "); break;
+			case QUESTION: printf("question "); break;
+			case COLON: printf("colon "); break;
 			case BPAREN: printf("bparen "); break;
 			case EPAREN: printf("eparen "); break;
 			case BBRACK: printf("bbrack "); break;
