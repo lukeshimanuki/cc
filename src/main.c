@@ -32,67 +32,68 @@
  * ========================================================================== */
 
 #include <stdio.h>
-
+#include <stdlib.h>
 #include "defs.h"
 
 #include "symbol.h"
 // iterative over next, recursive over lhs/rhs
-void printSymbol(struct Symbol* symbol, int depth)
+void printSymbol(FILE* out, struct Symbol* symbol, int depth)
 {
 	while (symbol)
 	{
 		int i = 0;
 		while (i++ < depth)
-			printf("\t");
+			fprintf(out, "\t");
 		switch (symbol->type)
 		{
-			case VARIABLE: printf("var %i %s ", symbol->id, symbol->name); break;
-			case STRING: printf("str %i \"%s\" ", symbol->id, symbol->string); break;
-			case VALUE: printf("val %i ", symbol->value); break;
-			case TYPE: printf("type "); break;
-			case DECLARE: printf("dec "); break;
-			case PARENTHESES: printf("paren "); break;
-			case BRACKET: printf("brack "); break;
-			case FUNCTION: printf("func %s", symbol->name); break;
+			case VARIABLE: fprintf(out, "var %i %s ", symbol->id, symbol->name); break;
+			case STRING: fprintf(out, "str %i \"%s\" ", symbol->id, symbol->string); break;
+			case VALUE: fprintf(out, "val %i ", symbol->value); break;
+			case TYPE: fprintf(out, "type "); break;
+			case DECLARE: fprintf(out, "dec "); break;
+			case PARENTHESES: fprintf(out, "paren "); break;
+			case BRACKET: fprintf(out, "brack "); break;
+			case FUNCTION: fprintf(out, "func %s", symbol->name); break;
 			
 		   // 1
-			case INCREMENT_POST: printf("inc post "); break;
-			case DECREMENT_POST: printf("dec post "); break;
-			case CALL: printf("call %s ", symbol->name); break;
-			case SUBSCRIPT: printf("subscript "); break;
-			case MEMBER: printf("member "); break;
-			case PTR_MEMBER: printf("ptr member "); break;
+			case INCREMENT_POST: fprintf(out, "inc post "); break;
+			case DECREMENT_POST: fprintf(out, "dec post "); break;
+			case CALL: fprintf(out, "call %s ", symbol->name); break;
+			case SUBSCRIPT: fprintf(out, "subscript "); break;
+			case MEMBER: fprintf(out, "member "); break;
+			case PTR_MEMBER: fprintf(out, "ptr member "); break;
+			case DEREFERENCE: fprintf(out, "deref "); break;
 
 			// 3
-			case MULTIPLY: printf("mult "); break;
-			case DIVIDE: printf("div "); break;
+			case MULTIPLY: fprintf(out, "mult "); break;
+			case DIVIDE: fprintf(out, "div "); break;
 
 			// 4
-			case ADD: printf("add "); break;
-			case SUBTRACT: printf("sub "); break;
+			case ADD: fprintf(out, "add "); break;
+			case SUBTRACT: fprintf(out, "sub "); break;
 		
-			case EQUAL: printf("equal "); break;
-			case TERNARY_CONDITIONAL: printf("tern cond "); break;
-			case ASSIGN: printf("assi "); break;
-			case RETURN: printf("ret "); break;
-			case BLANK: printf("blank "); break;
+			case EQUAL: fprintf(out, "equal "); break;
+			case TERNARY_CONDITIONAL: fprintf(out, "tern cond "); break;
+			case ASSIGN: fprintf(out, "assi "); break;
+			case RETURN: fprintf(out, "ret "); break;
+			case BLANK: fprintf(out, "blank "); break;
 
-			case PLUS: printf("plus "); break;
-			case MINUS: printf("minus "); break;
-			case ASTERISK: printf("asterisk "); break;
-			case QUESTION: printf("question "); break;
-			case COLON: printf("colon "); break;
-			case BPAREN: printf("bparen "); break;
-			case EPAREN: printf("eparen "); break;
-			case BBRACK: printf("bbrack "); break;
-			case EBRACK: printf("ebrack "); break;
-			case SEMICOLON: printf("semicolon "); break;
-			case COMMA: printf("comma "); break;
-
+			case PLUS: fprintf(out, "plus "); break;
+			case MINUS: fprintf(out, "minus "); break;
+			case ASTERISK: fprintf(out, "asterisk "); break;
+			case QUESTION: fprintf(out, "question "); break;
+			case COLON: fprintf(out, "colon "); break;
+			case BPAREN: fprintf(out, "bparen "); break;
+			case EPAREN: fprintf(out, "eparen "); break;
+			case BBRACK: fprintf(out, "bbrack "); break;
+			case EBRACK: fprintf(out, "ebrack "); break;
+			case SEMICOLON: fprintf(out, "semicolon "); break;
+			case COMMA: fprintf(out, "comma "); break;
+			default: break;
 		}
-		printf("\n");
-		printSymbol(symbol->lhs, depth + 1);
-		printSymbol(symbol->rhs, depth + 1);
+		fprintf(out, "\n");
+		printSymbol(out, symbol->lhs, depth + 1);
+		printSymbol(out, symbol->rhs, depth + 1);
 		symbol = symbol->next;
 	}
 	return;
@@ -104,32 +105,33 @@ void printSymbol(struct Symbol* symbol, int depth)
  ******************************************************************************/
 int main(int argc, char** argv)
 {
-	// the first argument is the compiler
-	// if there is no second argument, there is no file to compile
-	if (argc < 2)
-	{
-		printf("Error: not enough arguments\n");
-		return 0;
-	}
+	FILE* input = stdin;
+	FILE* output = stdout;
 
-	// read the contents of the file
-	char* data = read(argv[1]);
+	// check args for -i/-o flags
+
+	// read the contents of the input
+	char* data = read(input);
+	if (data == NULL) // no input
+	{
+		return 1;
+	}
+	fprintf(stderr, "%s\n", data);
 	// parse the file into organized structures
 	struct Symbol* symbols = parse(data);
-	printSymbol(symbols, 0);
-	printf("\n");
+	printSymbol(stderr, symbols, 0);
 	// generate assembly
 	struct String* assembly = compile(symbols);
-	// write to file
-	size_t numBytes = write("out.s", assembly);
-	if (numBytes)
+	// write to output
+	size_t numBytes = write(output, assembly);
+	if (numBytes != 0)
 	{
-		printf("%i bytes written\n", numBytes);
+		fprintf(stderr, "%i bytes written\n", numBytes);
 		return 0;
 	}
-	else
+	else // nothing written
 	{
-		printf("Error: no bytes written\n");
+		fprintf(stderr, "Error: no bytes written\n");
 		return 1;
 	}
 }

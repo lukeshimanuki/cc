@@ -102,8 +102,8 @@ char* operatorString(enum SymbolType operatorID)
 		case PTR_MEMBER: return "->";
 		case LSHIFT: return "<<";
 		case RSHIFT: return ">>";
-		case AND: "&&";
-		case OR: "||";
+		case AND: return "&&";
+		case OR: return "||";
 		case AADD: return "+=";
 		case ASUBTRACT: return "-=";
 		case AMULTIPLY: return "*=";
@@ -138,7 +138,8 @@ char* operatorString(enum SymbolType operatorID)
 		case QUESTION: return "?";
 		case COLON: return ":";
 		
-		case BLANK: return "garbage";
+		case BLANK: return "blank";
+		default: return "nonexistent";
 	}
 }
 

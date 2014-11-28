@@ -1,12 +1,19 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "parse.h"
 #include "symbol.h"
 
+void printSymbol(FILE* file, struct Symbol* symbols, int depth);
+
+struct Symbol* interpret(struct Symbol* symbols);
+
 struct Symbol* parse(char* data)
 {
 	struct Symbol* symbols = translate(data);
+	symbols = interpret(symbols);
+	printSymbol(stderr, symbols, 0);
 	struct Symbol* tree = combine(symbols);
 	return tree;
 }
@@ -188,6 +195,101 @@ struct Symbol* translate(char* data)
 	return symbols;
 }
 
+int isOperand(enum SymbolType type)
+{
+	switch (type)
+	{
+		// the symbols that can be an operand because
+		// they do not require an operand after
+		// special
+		case VARIABLE:
+		case STRING:
+		case VALUE:
+		case TYPE:
+		case SEMICOLON:
+		case COMMA:
+		// unary postfix
+		case INCREMENT_POST:
+		case DECREMENT_POST:
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+// when there is a symbol that can be used in different ways,
+// determines which one it should be
+struct Symbol* interpret(struct Symbol* symbols)
+{
+	struct Symbol* current = symbols;
+	// if at beginning, not operand before
+	switch (current->type)
+	{
+		case PLUS: current->type = UPLUS; break;
+		case MINUS: current->type = UMINUS; break;
+		case ASTERISK: current->type = DEREFERENCE; break;
+		case AMPERSAND: current->type = ADDRESS; break;
+		case INCREMENT: current->type = INCREMENT_PRE; break;
+		case DECREMENT: current->type = DECREMENT_PRE; break;
+		default: break;
+	}
+	while (current && current->next)
+	{
+		switch (current->next->type)
+		{
+			// if there is an operand before +/-,
+			// then it is add/sub; otherwise it
+			// is unary plus/minus
+			case PLUS:
+				if (isOperand(current->type))
+					current->next->type = ADD;
+				else
+					current->next->type = UPLUS;
+				break;
+			case MINUS:
+				if (isOperand(current->type))
+					current->next->type = SUBTRACT;
+				else
+					current->next->type = UMINUS;
+				break;
+			// multiply has operand before
+			// dereference does not
+			case ASTERISK:
+				if (isOperand(current->type))
+					current->next->type = MULTIPLY;
+				else
+					current->next->type = DEREFERENCE;
+				break;
+			// bitwise and has operand before
+			// address does not
+			case AMPERSAND:
+				if (isOperand(current->type))
+					current->next->type = BAND;
+				else
+					current->next->type = ADDRESS;
+				break;
+			// inc/dec post has operand before
+			// inc/dec pre does not
+			case INCREMENT:
+				if (isOperand(current->type))
+					current->next->type = INCREMENT_POST;
+				else
+					current->next->type = INCREMENT_PRE;
+				break;
+			case DECREMENT:
+				if (isOperand(current->type))
+					current->next->type = DECREMENT_POST;
+				else
+					current->next->type = DECREMENT_PRE;
+				break;
+			default:
+				break;
+		}
+		current = current->next;
+	}
+	return symbols;
+}
+
 enum Pattern
 {
 	CONTAINER,
@@ -282,14 +384,15 @@ struct Symbol* combine(struct Symbol* symbols)
 
 	symbols = findPattern(symbols, UNARY_PRE, LEFT, INCREMENT_PRE);
 	symbols = findPattern(symbols, UNARY_PRE, LEFT, DECREMENT_PRE);
-//	symbols = findPattern(symbols, UNARY_PRE, LEFT, UPLUS);
-//	symbols = findPattern(symbols, UNARY_PRE, LEFT, UMINUS);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, UPLUS);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, UMINUS);
 	symbols = findPattern(symbols, UNARY_PRE, LEFT, NOT);
 	symbols = findPattern(symbols, UNARY_PRE, LEFT, BNOT);
-//	symbols = findPattern(symbols, UNARY_PRE, LEFT, CAST);
-//	symbols = findPattern(symbols, UNARY_PRE, LEFT, DEREFERENCE);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, CAST);
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, DEREFERENCE);
 	symbols = findPattern(symbols, UNARY_PRE, LEFT, ADDRESS);
-//	symbols = findPattern(symbols, UNARY_PRE, LEFT, SIZEOF); 
+	symbols = findPattern(symbols, UNARY_PRE, LEFT, SIZEOF); 
+
 	symbols = findPattern(symbols, BINARY, RIGHT, MULTIPLY);
 	symbols = findPattern(symbols, BINARY, RIGHT, DIVIDE);
 	symbols = findPattern(symbols, BINARY, RIGHT, MODULUS);
@@ -400,9 +503,9 @@ enum CharType getType(char c)
 }
 
 struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close);
-struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias);
-struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias);
-struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias);
+struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type);
+struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type);
+struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type);
 struct Symbol* patternTernary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType first, enum SymbolType second);
 
 struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Direction direction, enum SymbolType type)
@@ -434,48 +537,9 @@ struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Di
 			return patternContainer(symbols, type, open, close);
 			break;
 		}
-		case UNARY_POST:
-		{
-			enum SymbolType alias;
-			switch (type)
-			{
-				case INCREMENT_POST: alias = INCREMENT; break;
-				case DECREMENT_POST: alias = DECREMENT; break;
-				default: alias = type; break;
-			}
-			return patternUnaryPost(symbols, direction, type, alias);
-			break;
-		}
-		case UNARY_PRE:
-		{
-			enum SymbolType alias;
-			switch (type)
-			{
-				case INCREMENT_PRE: alias = INCREMENT; break;
-				case DECREMENT_PRE: alias = DECREMENT; break;
-				case UPLUS: alias = PLUS; break;
-				case UMINUS: alias = MINUS; break;
-				case DEREFERENCE: alias = ASTERISK; break;
-				case ADDRESS: alias = AMPERSAND; break;
-				default: alias = type; break;
-			}
-			return patternUnaryPre(symbols, direction, type, alias);
-			break;
-		}
-		case BINARY:
-		{
-			enum SymbolType alias;
-			switch (type)
-			{
-				case ADD: alias = PLUS; break;
-				case SUBTRACT: alias = MINUS; break;
-				case MULTIPLY: alias = ASTERISK; break;
-				case BAND: alias = AMPERSAND; break;
-				default: alias = type; break;
-			}
-			return patternBinary(symbols, direction, type, alias);
-			break;
-		}
+		case UNARY_POST: return patternUnaryPost(symbols, direction, type);
+		case UNARY_PRE: return patternUnaryPre(symbols, direction, type);
+		case BINARY: return patternBinary(symbols, direction, type);
 		case TERNARY:
 		{
 			enum SymbolType first, second;
@@ -538,15 +602,14 @@ struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, en
 	return symbols;
 }
 
-struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
+struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type)
 {
 	if (direction == RIGHT)
 	{
-		while (symbols && symbols->next && symbols->next->type == alias)
+		while (symbols && symbols->next && symbols->next->type == type)
 		{
 			struct Symbol* operator = symbols->next;
 			struct Symbol* operand = symbols;
-			operator->type = type;
 			operator->lhs = operand;
 			operand->next = NULL;
 			symbols = operator;
@@ -556,9 +619,8 @@ struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction
 		{
 			struct Symbol* operator = current->next->next;
 			struct Symbol* operand = current->next;
-			if (operator->type == alias)
+			if (operator->type == type)
 			{
-				operator->type = type;
 				operator->lhs = operand;
 				operand->next = NULL;
 				current->next = operator;
@@ -573,9 +635,8 @@ struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction
 		struct Symbol* current = symbols;
 		while (current && current->next)
 		{
-			if (current->type == alias)
+			if (current->type == type)
 			{
-				current->type = type;
 				struct Symbol* var = current->next;
 				current->lhs = var;
 				current->next = var->next;
@@ -588,16 +649,15 @@ struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction
 	return symbols;
 }
 
-struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
+struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type)
 {
 	if (direction == RIGHT)
 	{
 		struct Symbol* current = symbols;
 		while (current && current->next)
 		{
-			if (current->type == alias)
+			if (current->type == type)
 			{
-				current->type = type;
 				struct Symbol* var = current->next;
 				current->rhs = var;
 				current->next = var->next;
@@ -610,11 +670,10 @@ struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction,
 	{
 		symbols = reverseSymbol(symbols);
 		struct Symbol* last = symbols;
-		while (symbols && symbols->next && symbols->next->type == alias)
+		while (symbols && symbols->next && symbols->next->type == type)
 		{
 			struct Symbol* operator = symbols->next;
 			struct Symbol* operand = symbols;
-			operator->type = type;
 			operator->rhs = operand;
 			operand->next = NULL;
 			symbols = operator;
@@ -624,9 +683,8 @@ struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction,
 		{
 			struct Symbol* operator = current->next->next;
 			struct Symbol* operand = current->next;
-			if (operator->type == alias)
+			if (operator->type == type)
 			{
-				operator->type = type;
 				operator->lhs = operand;
 				operand->next = NULL;
 				current->next = operator;
@@ -639,7 +697,7 @@ struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction,
 }
 
 // if left, reverse before processing, then reverse again
-struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType alias)
+struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type)
 {
 	struct Symbol* current = symbols;
 	struct Symbol* last;
@@ -651,10 +709,9 @@ struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, e
 	}
 
 	// if at beginning
-	while (current && current->next && current->next->type == alias && current->next->next)
+	while (current && current->next && current->next->type == type && current->next->next)
 	{
 		struct Symbol* operator = current->next;
-		current->next->type = type;
 		struct Symbol* lhs = current;
 		struct Symbol* rhs = current->next->next;
 		operator->lhs = lhs;
@@ -669,9 +726,8 @@ struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, e
 	while (current && current->next && current->next->next && current->next->next->next)
 	{
 		struct Symbol* operator = current->next->next;
-		if (operator->type == alias)
+		if (operator->type == type)
 		{
-			operator->type = type;
 			struct Symbol* lhs = current->next;
 			struct Symbol* rhs = current->next->next->next;
 			operator->lhs = lhs;

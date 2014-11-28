@@ -51,6 +51,7 @@ struct String* data = NULL;
 
 struct String* compile(struct Symbol* symbols)
 {
+	char buffer[512];
 	scope = newScope();
 	data = newString(0);
 	struct String* text = NULL;
@@ -117,7 +118,7 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				sprintf(buffer, "\t# dec %i %s\n", symbols->rhs->id, symbols->rhs->name);
 				addString(current, getString(buffer));
 				addString(current, getString("\tsub $4,%esp\n"));
-				if (pass = VAL)
+				if (pass == VAL)
 					addString(current, getString("\tmov (%esp),%eax\n"));
 				else
 					addString(current, getString("\tmov %esp,%eax\n"));
@@ -286,6 +287,8 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				addString(current, getString("\tmov %ebp,%esp\n"));
 				addString(current, getString("\tpop %ebp\n"));
 				addString(current, getString("\tret\n"));
+				break;
+			default:
 				break;
 		}
 		// clean up empty strings

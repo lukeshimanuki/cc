@@ -33,40 +33,47 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /***************************************************************************//**
  * The filename is passed as a string, and the buffer containing the
  * contents is returned.
  ******************************************************************************/
-char* read(char* fileName)
+char* read(FILE* file)
 {
-	char* dest;
-	size_t size;
-	FILE* file;
+	char* dest = NULL;
+	size_t size = 0;
+	const size_t buffer_size = 512;
+	char buffer[buffer_size];
 
-	// open file
-	file = fopen(fileName, "r");
 	if (file)
 	{
-		// find the last character to determine the size
-		fseek(file, 0, SEEK_END);
-		size = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		// allocate memory
-		dest = malloc(size + 1);
-		if (dest)
+		// grab each character and add it to the buffer
+		int c = fgetc(file);
+		int i = 0;
+		while (c != EOF)
 		{
-			// read file into buffer
-			if (fread(dest, 1, size, file) == size)
+			buffer[i] = (char) c;
+			i++;
+			// if buffer is full, copy it to dest
+			if (i == buffer_size)
 			{
-				fclose(file);
-				// null terminate the string
-				dest[size] = 0;
-				return dest;
+				size += buffer_size;
+				dest = realloc(dest, size);
+				memcpy(dest + size - buffer_size, buffer, buffer_size);
+				i = 0;
 			}
-			free(dest);
+			c = fgetc(file);
 		}
-		fclose(file);
+		// copy buffer to dest and null terminate
+		dest = realloc(dest, size + i + 1);
+		memcpy(dest + size, buffer, i);
+		dest[size + i] = '\0';
+		
+		if (strlen(dest) != 0)
+			return dest;
+		else
+			return NULL;
 	}
 
 	return NULL;

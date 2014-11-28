@@ -2,7 +2,7 @@
 echo building && \
 make && \
 echo compiling && \
-./compile test.c && \
+cat test.c | ./compile > out.s && \
 cat out.s && \
 echo assembling && \
 as --gstabs -32 out.s -o out.o && \

@@ -39,12 +39,8 @@
  * The contents of data are written to the file specified by fileName. It
  * returns the number of bytes written.
  ******************************************************************************/
-size_t write(char* fileName, struct String* data)
+size_t write(FILE* file, struct String* data)
 {
-	FILE* file = NULL;
-
-	// open file
-	file = fopen(fileName, "w");
 	if (file)
 	{
 		// write to file

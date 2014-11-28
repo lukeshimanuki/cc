@@ -55,7 +55,7 @@ int main(int argc, char** argv);
  *
  * @return A buffer containing the contents of the file.
  ******************************************************************************/
-char* read(char* fileName);
+char* read(FILE* file);
 
 /***************************************************************************//**
  * @brief Analyzes the data and organizes it symbolically.
@@ -84,6 +84,6 @@ struct String* compile(struct Symbol* symbols);
  *
  * @return The number of bytes that were written.
  ******************************************************************************/
-size_t write(char* fileName, struct String* data);
+size_t write(FILE* file, struct String* data);
 
 #endif /* __DEFS_H__ */
