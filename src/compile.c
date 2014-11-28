@@ -226,9 +226,25 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				break;
 			}
 
-			// 2
-
 			// 3
+			case DEREFERENCE:
+				addString(current, getString("\t# deref\n"));
+				// evaluate operand and store in %eax
+				addString(current, getAssembly(symbols->rhs, VAL));
+				// dereference
+				if (pass == VAL)
+					addString(current, getString("\tmov (%eax),%eax\n"));
+				else // just return the address
+				{
+				}
+				break;
+			case ADDRESS:
+				addString(current, getString("\t# addr\n"));
+				// evaluate operand and return its address
+				addString(current, getAssembly(symbols->rhs, REF));
+				break;
+
+			// 4
 			case MULTIPLY:
 				addString(current, getString("\t# mult\n"));
 				// place lhs in %eax and rhs in %ecx

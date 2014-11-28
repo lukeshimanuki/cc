@@ -55,7 +55,6 @@ void printSymbol(FILE* out, struct Symbol* symbol, int depth)
 			case BRACKET: fprintf(out, "brack "); break;
 			case FUNCTION: fprintf(out, "func %s", symbol->name); break;
 			
-		   // 1
 			case INCREMENT_POST: fprintf(out, "inc post "); break;
 			case DECREMENT_POST: fprintf(out, "dec post "); break;
 			case CALL: fprintf(out, "call %s ", symbol->name); break;
@@ -63,12 +62,11 @@ void printSymbol(FILE* out, struct Symbol* symbol, int depth)
 			case MEMBER: fprintf(out, "member "); break;
 			case PTR_MEMBER: fprintf(out, "ptr member "); break;
 			case DEREFERENCE: fprintf(out, "deref "); break;
+			case ADDRESS: fprintf(out, "addr "); break;
 
-			// 3
 			case MULTIPLY: fprintf(out, "mult "); break;
 			case DIVIDE: fprintf(out, "div "); break;
 
-			// 4
 			case ADD: fprintf(out, "add "); break;
 			case SUBTRACT: fprintf(out, "sub "); break;
 		

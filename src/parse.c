@@ -377,6 +377,8 @@ struct Symbol* combine(struct Symbol* symbols)
 		current = current->next;
 	}
 
+	// TODO: make it so the operators in a group are all searched at
+	// the same time
 	symbols = findPattern(symbols, UNARY_POST, RIGHT, INCREMENT_POST);
 	symbols = findPattern(symbols, UNARY_POST, RIGHT, DECREMENT_POST);
 	symbols = findPattern(symbols, BINARY, RIGHT, MEMBER);
