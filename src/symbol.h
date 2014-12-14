@@ -59,6 +59,52 @@ struct Symbol
 
 		FUNCTION,
 
+		// keywords
+		AUTO,
+		BREAK,
+		CASE,
+		CHAR,
+		CONST,
+		CONTINUE,
+		DEFAULT,
+		DO,
+		DOUBLE,
+		ELSE,
+		ENUM,
+		EXTERN,
+		FLOAT,
+		FOR,
+		GOTO,
+		IF,
+//		INLINE,
+		INT,
+		LONG,
+		REGISTER,
+//		RESTRICT,
+		RETURN,
+		SHORT,
+		SIGNED,
+		SIZEOF,
+		STATIC,
+		STRUCT,
+		SWITCH,
+		TYPEDEF,
+		UNION,
+		UNSIGNED,
+		VOID,
+		VOLATILE,
+		WHILE,
+//		_ALIGNAS,
+//		_ALIGNOF,
+//		_ATOMIC,
+//		_BOOL,
+//		_COMPLEX,
+//		_GENERIC,
+//		_IMAGINARY,
+//		_NORETURN,
+//		_STATIC_ASSERT,
+//		_THREAD_LOCAL,
+
 		// 1 lr
 		INCREMENT_POST,
 		DECREMENT_POST,
@@ -78,7 +124,7 @@ struct Symbol
 		CAST,
 		DEREFERENCE,
 		ADDRESS,
-		SIZEOF,
+//		SIZEOF, // also a keyword?
 //		ALIGN, // C11
 		
 		// 3 lr
@@ -134,8 +180,6 @@ struct Symbol
 
 		// 15 lr
 		COMMA,
-
-		RETURN,
 		
 		// only used for parsing
 		ASTERISK,
@@ -182,6 +226,8 @@ void deleteSymbolList(struct Symbol* base);
 void addSymbol(struct Symbol* dest, struct Symbol* symbol);
 
 char* operatorString(enum SymbolType operatorID);
+
+char* keywordString(enum SymbolType keywordID);
 
 struct Symbol* reverseSymbol(struct Symbol* root);
 

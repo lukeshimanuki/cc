@@ -143,6 +143,58 @@ char* operatorString(enum SymbolType operatorID)
 	}
 }
 
+char* keywordString(enum SymbolType keywordID)
+{
+	switch (keywordID)
+	{
+		case AUTO: return "auto";
+		case BREAK: return "break";
+		case CASE: return "case";
+		case CHAR: return "char";
+		case CONST: return "const";
+		case CONTINUE: return "continue";
+		case DEFAULT: return "default";
+		case DO: return "do";
+		case DOUBLE: return "double";
+		case ELSE: return "else";
+		case ENUM: return "enum";
+		case EXTERN: return "extern";
+		case FLOAT: return "float";
+		case FOR: return "for";
+		case GOTO: return "goto";
+		case IF: return "if";
+//		case INLINE: return "inline";
+		case INT: return "int";
+		case LONG: return "long";
+		case REGISTER: return "register";
+//		case RESTRICT: return "restrict";
+		case RETURN: return "return";
+		case SHORT: return "short";
+		case SIGNED: return "signed";
+		case SIZEOF: return "sizeof";
+		case STATIC: return "static";
+		case STRUCT: return "struct";
+		case SWITCH: return "switch";
+		case TYPEDEF: return "typedef";
+		case UNION: return "union";
+		case UNSIGNED: return "unsigned";
+		case VOID: return "void";
+		case VOLATILE: return "volatile";
+		case WHILE: return "while";
+//		case _ALIGNAS: return "_Alignas";
+//		case _ALIGNOF: return "_Alignof";
+//		case _ATOMIC: return "_Atomic";
+//		case _BOOL: return "_Bool";
+//		case _COMPLEX: return "_Complex";
+//		case _GENERIC: return "_Generic";
+//		case _IMAGINARY: return "_Imaginary";
+//		case _NORETURN: return "_Noreturn";
+//		case _STATIC_ASSERT: return "_Static_assert";
+//		case _THREAD_LOCAL: return "_Thread_local";
+		default: return "garbage";
+	}
+}
+
 struct Symbol* reverseSymbol(struct Symbol* root)
 {
 	struct Symbol* newRoot = NULL;

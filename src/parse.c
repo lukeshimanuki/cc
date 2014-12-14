@@ -98,20 +98,25 @@ struct Symbol* translate(char* data)
 			}
 			case NORMAL:
 			{
-				// check return
-				if (strcmp(word, "return") == 0)
+				// same as with operators, but each word can only be one keyword
+				size_t keywordID = 0;
+				char found = 0;
+				while (keywordID < sizeof(keywords) / sizeof(keywords[0]))
 				{
-					addSymbol(symbols, newSymbol(RETURN));
-					break;
+					// if it is this keyword
+					if (strlen(word) == strlen(keywordString(keywords[keywordID])) && strncmp(word, keywordString(keywords[keywordID]), strlen(word)) == 0)
+					{
+						// add the symbol
+						addSymbol(symbols, newSymbol(keywords[keywordID]));
+						found = 1;
+						break;
+					}
+					// otherwise, try next keyword
+					keywordID++;
 				}
-				// check types: currently only supports int
-				if (strcmp(word, "int") == 0)
-				{
-					struct Symbol* type = newSymbol(TYPE);
-					type->id = 0;
-					addSymbol(symbols, type);
+				// if it was a keyword, skip the rest
+				if (found)
 					break;
-				}
 				
 				// check number
 				int isNumber = 1;
@@ -132,13 +137,6 @@ struct Symbol* translate(char* data)
 					// convert to number
 					number->value = strtol(word, NULL, 10);
 					addSymbol(symbols, number);
-					break;
-				}
-
-				// check return
-				if (strcmp(word, "return") == 0)
-				{
-					addSymbol(symbols, newSymbol(RETURN));
 					break;
 				}
 
@@ -325,7 +323,7 @@ struct Symbol* combine(struct Symbol* symbols)
 		if (current->next && current->next->next && current->next->next->next)
 		{
 			// check pattern
-			if (current->type == TYPE && current->next->type == VARIABLE && current->next->next->type == PARENTHESES && current->next->next->next->type == BRACKET)
+			if ((current->type == TYPE || current->type == INT || current->type == SHORT || current->type == LONG || current->type == CHAR || current->type == FLOAT || current->type == DOUBLE) && current->next->type == VARIABLE && current->next->next->type == PARENTHESES && current->next->next->next->type == BRACKET)
 			{
 				// turn it into a function
 				current->type = FUNCTION;
@@ -365,7 +363,7 @@ struct Symbol* combine(struct Symbol* symbols)
 	current = symbols;
 	while (current && current->next)
 	{
-		if (current->type == TYPE && current->next->type == VARIABLE)
+		if ((current->type == TYPE || current->type == INT || current->type == SHORT || current->type == LONG || current->type == CHAR || current->type == FLOAT || current->type == DOUBLE) && current->next->type == VARIABLE)
 		{
 			// replace them with declare
 			struct Symbol* var = current->next;
