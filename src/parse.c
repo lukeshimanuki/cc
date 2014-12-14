@@ -348,7 +348,9 @@ struct Symbol* combine(struct Symbol* symbols)
 		current = current->next;
 	}
 	// call: variable, parentheses
-	current = symbols; while (current && current->next) {
+	current = symbols;
+	while (current && current->next)
+	{
 		if (current->type == VARIABLE && current->next->type == PARENTHESES)
 		{
 			struct Symbol* paren = current->next;
@@ -371,6 +373,42 @@ struct Symbol* combine(struct Symbol* symbols)
 			current->rhs = var;
 			current->next = var->next;
 			var->next = NULL;
+		}
+		current = current->next;
+	}
+	// if: if, paren, command/brack
+	current = symbols;
+	while (current && current->next)
+	{
+		if (current->type == IF && current->next->type == PARENTHESES)
+		{
+			// move inside of paren into lhs
+			struct Symbol* paren = current->next;
+			current->lhs = paren->rhs;
+			struct Symbol* command = current->next->next;
+			current->next = command->next;
+			// take as single command, even if brack
+			current->rhs = command;
+			command->next = NULL;
+			deleteSymbol(paren);
+		}
+		current = current->next;
+	}
+	// while: while, paren, command/brack
+	current = symbols;
+	while (current && current->next)
+	{
+		if (current->type == WHILE && current->next->type == PARENTHESES)
+		{
+			// move inside of paren into lhs
+			struct Symbol* paren = current->next;
+			current->lhs = paren->rhs;
+			struct Symbol* command = current->next->next;
+			current->next = command->next;
+			// take as single command, even if brack
+			current->rhs = command;
+			command->next = NULL;
+			deleteSymbol(paren);
 		}
 		current = current->next;
 	}

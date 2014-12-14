@@ -67,7 +67,8 @@ struct String* compile(struct Symbol* symbols)
 	addString(data, text);
 	return data;
 }
-
+int numIf = 0;
+int numWhile = 0;
 // iterative over lists, recursive over children
 // eg: recurse over function->parameters->declare->variable
 // iterative over declare, declare, add, call
@@ -185,6 +186,51 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 				// restore scope
 				deleteScope(scope);
 				scope = oldScope;
+				break;
+			}
+
+			case IF: // lhs: condition; rhs: command(s)
+			{
+				deleteString(current);
+//				addString(current, getString("\t# if\n"));
+				current = getString("\t# if\n");
+				// compare to 0
+				addString(current, getAssembly(symbols->lhs, VAL));
+				addString(current, getString("\tcmp $0,%eax\n"));
+				// then skip commands if equal to 0 (false)
+				sprintf(buffer, "\tje IF%i\n", numIf);
+				addString(current, getString(buffer));
+				// the commands
+				addString(current, getAssembly(symbols->rhs, VAL));
+				// the label to skip to
+				sprintf(buffer, "IF%i:\n", numIf);
+				addString(current, getString(buffer));
+				numIf++;
+				break;
+			}
+			case WHILE: // lhs: condition; rhs: command(s)
+			{
+//				deleteString(current);
+				addString(current, getString("\t# while\n"));
+//				current = getString("\t# while\n");
+				// initial label
+				sprintf(buffer, "WHILE_BEG%i:\n", numWhile);
+				addString(current, getString(buffer));
+				// compare to 0
+				addString(current, getAssembly(symbols->lhs, VAL));
+				addString(current, getString("\tcmp $0,%eax\n"));
+				// then skip commands if equal to 0 (false)
+				sprintf(buffer, "\tje WHILE_END%i\n", numWhile);
+				addString(current, getString(buffer));
+				// the commands
+				addString(current, getAssembly(symbols->rhs, VAL));
+				//jump to beginning
+				sprintf(buffer, "\tjmp WHILE_BEG%i\n", numWhile);
+				addString(current, getString(buffer));
+				// the label to skip to
+				sprintf(buffer, "WHILE_END%i:\n", numWhile);
+				addString(current, getString(buffer));
+				numWhile++;
 				break;
 			}
 			

@@ -54,6 +54,9 @@ void printSymbol(FILE* out, struct Symbol* symbol, int depth)
 			case PARENTHESES: fprintf(out, "paren "); break;
 			case BRACKET: fprintf(out, "brack "); break;
 			case FUNCTION: fprintf(out, "func %s", symbol->name); break;
+
+			case IF: fprintf(out, "if "); break;
+			case WHILE: fprintf(out, "while "); break;
 			
 			case INCREMENT_POST: fprintf(out, "inc post "); break;
 			case DECREMENT_POST: fprintf(out, "dec post "); break;
