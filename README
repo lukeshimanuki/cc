@@ -1,0 +1,22 @@
+cc - C Compiler
+Copyright (C) 2014 Luke Shimanuki
+Version 0.2
+
+INTRODUCTION
+
+  CC is a c compiler. It converts C code into i386 assembly.
+
+COPYING
+
+  CC is licensed under the BSD License. See COPYING for more details.
+
+COMPILE
+
+  make all
+
+USAGE
+
+  CC accepts input from stdin and outputs to stdout.
+
+  ./cc < input.c > output.s
+
