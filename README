@@ -6,6 +6,26 @@ INTRODUCTION
 
   CC is a c compiler. It converts C code into i386 assembly.
 
+WHAT IT SUPPORTS
+
+  functions and recursion
+  if and while (requires brackets)
+  variables (only 4 bytes)
+  pointers
+  arithmetic and assignment
+  operator precedence and parentheses
+
+WHAT IT DOES NOT SUPPORT
+
+  structs (but it can use pointers to them)
+  static typing (everything is an int, even pointers)
+  compiler flags (includes, defines, etc)
+  comparison
+  floating point registers
+  else
+  comments
+  compound declaration
+
 COPYING
 
   CC is licensed under the BSD License. See COPYING for more details.

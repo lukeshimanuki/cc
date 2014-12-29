@@ -24,13 +24,13 @@
 
 CC = gcc
 
-all: dir compile
+all: dir cc
 
 dir:
 	mkdir -p build
 
-compile: build/read.o build/parse.o build/compile.o build/write.o build/symbol.o build/string.o build/scope.o build/main.o
-	$(CC) $^ -o compile
+cc: build/read.o build/parse.o build/compile.o build/write.o build/symbol.o build/string.o build/scope.o build/main.o
+	$(CC) $^ -o cc
 
 build/main.o: src/main.c
 	$(CC) -std=c99 -ggdb -c $< -o $@
@@ -60,7 +60,7 @@ build/scope.o: src/scope.c
 .PHONY: clean
 
 clean:
-	rm -f compile
+	rm -f cc
 	rm -f build/*.o
 	rmdir --ignore-fail-on-non-empty build
 
