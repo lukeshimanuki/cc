@@ -2,7 +2,7 @@
  * @file compile.h
  * @author Luke Shimanuki
  * @date 28 Dec 2014
- * @brief Functions for converting symbolic structure to assembly.
+ * @brief Implementation of functions relating to conversion to assembly.
  *
  * -----------------------------------------------------------------------------
  *
