@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file read.c
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Contains a function to load files into memory.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Implemntation of the write function.
  *
  * -----------------------------------------------------------------------------
  *
@@ -36,8 +34,7 @@
 #include "string.h"
 
 /***************************************************************************//**
- * The contents of data are written to the file specified by fileName. It
- * returns the number of bytes written.
+ * Each string in the list is written consecutively into the given stream.
  ******************************************************************************/
 size_t write(FILE* file, struct String* data)
 {
@@ -57,3 +54,4 @@ size_t write(FILE* file, struct String* data)
 
 	return 0;
 }
+

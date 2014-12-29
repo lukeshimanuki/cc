@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file scope.c
  * @author Luke Shimanuki
- * @date 4 Nov 2014
- * @brief Implementation of Symbol related functions.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Implementation of functions relating to the scope structure.
  *
  * -----------------------------------------------------------------------------
  *
@@ -38,12 +36,7 @@
 
 
 /***************************************************************************//**
- *
- * @param argc The number of command line arguments.
- *
- * @param argv An array containing the command line arguments.
- *
- * @return The error level. 0 means no error.
+ * Allocates and initializes a new scope object on the heap.
  ******************************************************************************/
 struct Scope* newScope()
 {
@@ -54,6 +47,9 @@ struct Scope* newScope()
 	return scope;
 }
 
+/***************************************************************************//**
+ * Deletes the given scope.
+ ******************************************************************************/
 void deleteScope(struct Scope* scope)
 {
 	if (scope != NULL)
@@ -61,6 +57,10 @@ void deleteScope(struct Scope* scope)
 	return;
 }
 
+/***************************************************************************//**
+ * Allocates and initializes a new scope on the heap and appends it to the end
+ * of the given scope.
+ ******************************************************************************/
 void addScope(struct Scope* base, size_t offset)
 {
 	struct Scope* scope = newScope();
@@ -68,6 +68,10 @@ void addScope(struct Scope* base, size_t offset)
 	base->next = scope;
 }
 
+/***************************************************************************//**
+ * Looks through each scope and finds the offset of the object with the given
+ * id.
+ ******************************************************************************/
 int getOffset(struct Scope* scope, int varID)
 {
 	// for all others, ebp < scopeOffset (more negative)
@@ -86,8 +90,12 @@ int getOffset(struct Scope* scope, int varID)
 	return -15;
 }
 
+/***************************************************************************//**
+ * Adds a new object with the given properties to the curren scope.
+ ******************************************************************************/
 void addVariable(struct Scope* scope, int id, size_t size)
 {
 	scope->bottom += size;
 	scope->variables[id] = scope->bottom;
 }
+

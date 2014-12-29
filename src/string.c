@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file string.c
  * @author Luke Shimanuki
- * @date 2 Nov 2014
- * @brief Implementation of Symbol related functions.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Implementation of functions relating to the string structure.
  *
  * -----------------------------------------------------------------------------
  *
@@ -38,12 +36,7 @@
 
 
 /***************************************************************************//**
- *
- * @param argc The number of command line arguments.
- *
- * @param argv An array containing the command line arguments.
- *
- * @return The error level. 0 means no error.
+ * Allocates and initializes a new string of a given size.
  ******************************************************************************/
 struct String* newString(size_t size)
 {
@@ -57,7 +50,9 @@ struct String* newString(size_t size)
 	return string;
 }
 
-// copies string to contents
+/***************************************************************************//**
+ * Allocates and initializes a new string with the given contents.
+ ******************************************************************************/
 struct String* getString(char* array)
 {
 	struct String* string = malloc(sizeof(struct String));
@@ -69,6 +64,9 @@ struct String* getString(char* array)
 	return string;
 }
 
+/***************************************************************************//**
+ * Destroys the given string.
+ ******************************************************************************/
 void deleteString(struct String* string)
 {
 	if (string != NULL)
@@ -76,6 +74,9 @@ void deleteString(struct String* string)
 	return;
 }
 
+/***************************************************************************//**
+ * Destroys all strings in the given list.
+ ******************************************************************************/
 void deleteStringList(struct String* base)
 {
 	if (base->next != NULL)
@@ -84,6 +85,9 @@ void deleteStringList(struct String* base)
 	return;
 }
 
+/***************************************************************************//**
+ * Adds string to the end of dest.
+ ******************************************************************************/
 void addString(struct String* dest, struct String* string)
 {
 	while (dest->next != NULL)
@@ -93,3 +97,4 @@ void addString(struct String* dest, struct String* string)
 	dest->next = string;
 	return;
 }
+

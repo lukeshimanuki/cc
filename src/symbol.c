@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file symbol.c
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Implementation of Symbol related functions.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Implementation of functions relating to the symbol structure.
  *
  * -----------------------------------------------------------------------------
  *
@@ -32,17 +30,13 @@
  * ========================================================================== */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "symbol.h"
 
 
 /***************************************************************************//**
- *
- * @param argc The number of command line arguments.
- *
- * @param argv An array containing the command line arguments.
- *
- * @return The error level. 0 means no error.
+ * Allocates and initializes a new symbol of the given type.
  ******************************************************************************/
 struct Symbol* newSymbol(enum SymbolType type)
 {
@@ -56,6 +50,9 @@ struct Symbol* newSymbol(enum SymbolType type)
 	return symbol;
 }
 
+/***************************************************************************//**
+ * Destroys the given symbol.
+ ******************************************************************************/
 void deleteSymbol(struct Symbol* symbol)
 {
 	if (symbol != NULL)
@@ -63,6 +60,9 @@ void deleteSymbol(struct Symbol* symbol)
 	return;
 }
 
+/***************************************************************************//**
+ * Destroys all symbols in the given tree.
+ ******************************************************************************/
 void deleteSymbolList(struct Symbol* base)
 {
 	if (base->next != NULL)
@@ -73,6 +73,9 @@ void deleteSymbolList(struct Symbol* base)
 	return;
 }
 
+/***************************************************************************//**
+ * Adds symbol to the end of dest.
+ ******************************************************************************/
 void addSymbol(struct Symbol* dest, struct Symbol* symbol)
 {
 	while (dest->next != NULL)
@@ -83,7 +86,9 @@ void addSymbol(struct Symbol* dest, struct Symbol* symbol)
 	return;
 }
 
-// operatorID is type of symbol, not index of operators[]
+/***************************************************************************//**
+ * Gets the string that represents the given operator.
+ ******************************************************************************/
 char* operatorString(enum SymbolType operatorID)
 {
 	switch (operatorID)
@@ -143,6 +148,9 @@ char* operatorString(enum SymbolType operatorID)
 	}
 }
 
+/***************************************************************************//**
+ * Gets the string that represents the given keyword.
+ ******************************************************************************/
 char* keywordString(enum SymbolType keywordID)
 {
 	switch (keywordID)
@@ -195,6 +203,10 @@ char* keywordString(enum SymbolType keywordID)
 	}
 }
 
+/***************************************************************************//**
+ * Reverses both the ordering and the arguments of all symbols in the tree.
+ * The third argument is left unchanged.
+ ******************************************************************************/
 struct Symbol* reverseSymbol(struct Symbol* root)
 {
 	struct Symbol* newRoot = NULL;
@@ -216,3 +228,71 @@ struct Symbol* reverseSymbol(struct Symbol* root)
 	}
 	return newRoot;
 }
+
+/***************************************************************************//**
+ * Prints the given symbol tree. It is processes each symbol in the list
+ * iteratively, and processes each branch recursively on a new indent level.
+ ******************************************************************************/
+void printSymbol(FILE* out, struct Symbol* symbol, int depth)
+{
+	while (symbol)
+	{
+		int i = 0;
+		while (i++ < depth)
+			fprintf(out, "\t");
+		switch (symbol->type)
+		{
+			case VARIABLE: fprintf(out, "var %i %s ", symbol->id, symbol->name); break;
+			case STRING: fprintf(out, "str %i \"%s\" ", symbol->id, symbol->string); break;
+			case VALUE: fprintf(out, "val %i ", symbol->value); break;
+			case TYPE: fprintf(out, "type "); break;
+			case DECLARE: fprintf(out, "dec "); break;
+			case PARENTHESES: fprintf(out, "paren "); break;
+			case BRACKET: fprintf(out, "brack "); break;
+			case FUNCTION: fprintf(out, "func %s", symbol->name); break;
+
+			case IF: fprintf(out, "if "); break;
+			case WHILE: fprintf(out, "while "); break;
+			
+			case INCREMENT_POST: fprintf(out, "inc post "); break;
+			case DECREMENT_POST: fprintf(out, "dec post "); break;
+			case CALL: fprintf(out, "call %s ", symbol->name); break;
+			case SUBSCRIPT: fprintf(out, "subscript "); break;
+			case MEMBER: fprintf(out, "member "); break;
+			case PTR_MEMBER: fprintf(out, "ptr member "); break;
+			case DEREFERENCE: fprintf(out, "deref "); break;
+			case ADDRESS: fprintf(out, "addr "); break;
+
+			case MULTIPLY: fprintf(out, "mult "); break;
+			case DIVIDE: fprintf(out, "div "); break;
+
+			case ADD: fprintf(out, "add "); break;
+			case SUBTRACT: fprintf(out, "sub "); break;
+		
+			case EQUAL: fprintf(out, "equal "); break;
+			case TERNARY_CONDITIONAL: fprintf(out, "tern cond "); break;
+			case ASSIGN: fprintf(out, "assi "); break;
+			case RETURN: fprintf(out, "ret "); break;
+			case BLANK: fprintf(out, "blank "); break;
+
+			case PLUS: fprintf(out, "plus "); break;
+			case MINUS: fprintf(out, "minus "); break;
+			case ASTERISK: fprintf(out, "asterisk "); break;
+			case QUESTION: fprintf(out, "question "); break;
+			case COLON: fprintf(out, "colon "); break;
+			case BPAREN: fprintf(out, "bparen "); break;
+			case EPAREN: fprintf(out, "eparen "); break;
+			case BBRACK: fprintf(out, "bbrack "); break;
+			case EBRACK: fprintf(out, "ebrack "); break;
+			case SEMICOLON: fprintf(out, "semicolon "); break;
+			case COMMA: fprintf(out, "comma "); break;
+			default: break;
+		}
+		fprintf(out, "\n");
+		printSymbol(out, symbol->lhs, depth + 1);
+		printSymbol(out, symbol->rhs, depth + 1);
+		symbol = symbol->next;
+	}
+	return;
+}
+

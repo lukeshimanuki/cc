@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file string.h
  * @author Luke Shimanuki
- * @date 2 Nov 2014
- * @brief Structure and functions for symbolic parsing.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Definition of the string structure and related functions.
  *
  * -----------------------------------------------------------------------------
  *
@@ -37,28 +35,59 @@
 /***************************************************************************//**
  * @struct String
  *
- * @brief This structure...
+ * @brief a character string
  *
- * It does such and such... mention linked list, etc...
+ * This is a linked list of null terminated strings. Each element stores its own
+ * size and a pointer to the next string.
  ******************************************************************************/
 struct String
 {
-	size_t size;
-	char* contents;
-	struct String* next;
+	size_t size;         /**< The number of characters, excluding the terminating null character. */
+	char* contents;      /**< The character array containing the string. */
+
+	struct String* next; /**< A pointer to the next string. */
 };
 
 /***************************************************************************//**
- * @brief Loads a file into a buffer.
+ * @brief string object constructor
+ *
+ * @param size The size of the buffer to be allocated.
+ *
+ * @return A pointer to the created string.
  ******************************************************************************/
 struct String* newString(size_t size);
 
+/***************************************************************************//**
+ * @brief string object constructor
+ *
+ * @param array Contains the string to be created.
+ *
+ * @return A pointer to the created string.
+ ******************************************************************************/
 struct String* getString(char* array);
 
+/***************************************************************************//**
+ * @brief string object destructor
+ *
+ * @param string The string to be destroyed.
+ ******************************************************************************/
 void deleteString(struct String* string);
 
+/***************************************************************************//**
+ * @brief string list destructor
+ *
+ * @param base The string list to be destroyed
+ ******************************************************************************/
 void deleteStringList(struct String* base);
 
+/***************************************************************************//**
+ * @brief concatenate strings
+ *
+ * @param dest The base string.
+ *
+ * @param string The string to be added to the base string.
+ ******************************************************************************/
 void addString(struct String* dest, struct String* string);
 
 #endif /* __STRING_H__ */
+

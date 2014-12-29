@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file compile.h
  * @author Luke Shimanuki
- * @date 2 Nov 2014
+ * @date 28 Dec 2014
  * @brief Functions for converting symbolic structure to assembly.
- *
- * This file is part of MCC.
  *
  * -----------------------------------------------------------------------------
  *
@@ -39,16 +37,32 @@
 
 struct Scope* scope = NULL;
 
+/***************************************************************************//**
+ * Determines whether the return value is passed by value or by reference.
+ ******************************************************************************/
 enum Pass
 {
-	VAL,
-	REF
+	VAL, /*!< Return value should be passed by value. */
+	REF  /*!< Return value should be passed by reference. */
 };
 
+/***************************************************************************//**
+ * @brief creates assembly from symbol
+ *
+ * @param symbols The symbol to be compiled.
+ *
+ * @param pass Determines whether return is by value or by reference.
+ *
+ * @return A pointer to a string list containing the assembly code.
+ ******************************************************************************/
 struct String* getAssembly(struct Symbol* symbols, enum Pass pass);
 
 struct String* data = NULL;
 
+/***************************************************************************//**
+ * The entire tree of symbols is compiled into assembly. Each line of assembly
+ * is stored in its own string structure.
+ ******************************************************************************/
 struct String* compile(struct Symbol* symbols)
 {
 	char buffer[512];
@@ -67,12 +81,14 @@ struct String* compile(struct Symbol* symbols)
 	addString(data, text);
 	return data;
 }
+
 int numIf = 0;
 int numWhile = 0;
-// iterative over lists, recursive over children
-// eg: recurse over function->parameters->declare->variable
-// iterative over declare, declare, add, call
-// but the string list is iterative
+
+/***************************************************************************//**
+ * Creates assembly code for the base symbol. Other symbols in the list are
+ * ignored, but all arguments required for the base symbol are processed.
+ ******************************************************************************/
 struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 {
 	struct String* assembly = NULL;
@@ -380,3 +396,4 @@ struct String* getAssembly(struct Symbol* symbols, enum Pass pass)
 	}
 	return assembly;
 }
+

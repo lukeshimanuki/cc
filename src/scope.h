@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file scope.h
  * @author Luke Shimanuki
- * @date 4 Nov 2014
- * @brief Structure and functions for symbolic parsing.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Definition of the scope structure and related functions.
  *
  * -----------------------------------------------------------------------------
  *
@@ -37,35 +35,64 @@
 /***************************************************************************//**
  * @struct Scope
  *
- * @brief This structure...
+ * @brief keeps track of object declarations
  *
- * base scope is most local, each "next" goes more global
+ * The base scope is the most local, and each recursion becomes more global.
  ******************************************************************************/
 struct Scope
 {
-	size_t offset; // distance from beginning (the very first %ebp)
-	// it is equivalent to the first %ebp - the current %ebp
-	
-	size_t bottom; // the bottom of this stack, increases with each push
+	size_t offset;         /**< Total memory offset from the beginning (the very first %ebp). */
+	size_t bottom;         /**< Memory offset between the base of this scope and the bottom. */
+	size_t variables[256]; /**< The memory offset between each object in the scope and the base. */
 
-	size_t variables[256];
-
-	struct Scope* next;
+	struct Scope* next;    /**< A pointer to the broader scope. */
 };
 
 /***************************************************************************//**
- * @brief Loads a file into a buffer.
+ * @brief scope object constructor
+ *
+ * @return A pointer to the scope object.
  ******************************************************************************/
 struct Scope* newScope();
 
+/***************************************************************************//**
+ * @brief scope object destructor
+ *
+ * @param scope A pointer to the scope object to be destroyed.
+ ******************************************************************************/
 void deleteScope(struct Scope* scope);
 
+/***************************************************************************//**
+ * @brief add new scope to end
+ *
+ * @param base The scope to add a new scope to.
+ *
+ * @param offset The memory offset between the scopes.
+ ******************************************************************************/
 void addScope(struct Scope* base, size_t offset);
 
+/***************************************************************************//**
+ * @brief finds the memory offset of an object within a scope
+ *
+ * @param scope The scope to look for the object in.
+ *
+ * @param varID The id of the object to look for.
+ *
+ * @return The memory offset of the object.
+ ******************************************************************************/
 // returns distance from current %ebp
 int getOffset(struct Scope* scope, int varID);
 
-// adds new variable to scope
+/***************************************************************************//**
+ * @brief adds new object to scope
+ *
+ * @param scope The scope to add the object to.
+ *
+ * @param id The id of the object to be added.
+ *
+ * @param size The size in bytes of the object to be added.
+ ******************************************************************************/
 void addVariable(struct Scope* scope, int id, size_t size);
 
 #endif /* __SCOPE_H__ */
+

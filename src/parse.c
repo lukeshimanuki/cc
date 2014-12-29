@@ -5,10 +5,9 @@
 #include "parse.h"
 #include "symbol.h"
 
-void printSymbol(FILE* file, struct Symbol* symbols, int depth);
-
-struct Symbol* interpret(struct Symbol* symbols);
-
+/***************************************************************************//**
+ * Parses the code in the buffer to create a tree of symbols.
+ ******************************************************************************/
 struct Symbol* parse(char* data)
 {
 	struct Symbol* symbols = translate(data);
@@ -22,6 +21,9 @@ char* names[256];
 size_t numNames = 0;
 int numStrings = 0;
 
+/***************************************************************************//**
+ * Processes each word in the buffer and directly converts it to a symbol.
+ ******************************************************************************/
 struct Symbol* translate(char* data)
 {
 	struct Symbol* symbols = newSymbol(BLANK);
@@ -193,6 +195,11 @@ struct Symbol* translate(char* data)
 	return symbols;
 }
 
+/***************************************************************************//**
+ * Determines whether the specified symbol can be an operand on the left hand
+ * side of the operator. Typically, operators that require an operand following
+ * it cannot be a left hand side operand.
+ ******************************************************************************/
 int isOperand(enum SymbolType type)
 {
 	switch (type)
@@ -215,8 +222,10 @@ int isOperand(enum SymbolType type)
 	}
 }
 
-// when there is a symbol that can be used in different ways,
-// determines which one it should be
+/***************************************************************************//**
+ * Some operators can be used in different ways. In this stage, the context on
+ * both sides of the operator is used to determine which symbol it is.
+ ******************************************************************************/
 struct Symbol* interpret(struct Symbol* symbols)
 {
 	struct Symbol* current = symbols;
@@ -288,24 +297,9 @@ struct Symbol* interpret(struct Symbol* symbols)
 	return symbols;
 }
 
-enum Pattern
-{
-	CONTAINER,
-	UNARY_POST,
-	UNARY_PRE,
-	BINARY,
-	TERNARY
-};
-
-enum Direction
-{
-	RIGHT,
-	LEFT
-};
-
-struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Direction direction, enum SymbolType type);
-
-// looks for patterns and combines
+/***************************************************************************//**
+ * Creates a tree structure by moving symbol operands inside the parent symbol.
+ ******************************************************************************/
 struct Symbol* combine(struct Symbol* symbols)
 {
 	struct Symbol* current;
@@ -502,6 +496,10 @@ struct Symbol* combine(struct Symbol* symbols)
 	return symbols;
 }
 
+/***************************************************************************//**
+ * Determines whether the given character is whitespace, special, or normal. A
+ * special character is typically reserved for operators.
+ ******************************************************************************/
 enum CharType getType(char c)
 {
 	switch (c)
@@ -540,12 +538,10 @@ enum CharType getType(char c)
 	}
 }
 
-struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close);
-struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type);
-struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type);
-struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type);
-struct Symbol* patternTernary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType first, enum SymbolType second);
-
+/***************************************************************************//**
+ * Searches the symbol list to find the given symbol in the given pattern. The
+ * list is traversed in the specified direction.
+ ******************************************************************************/
 struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Direction direction, enum SymbolType type)
 {
 	switch (pattern)
@@ -597,7 +593,10 @@ struct Symbol* findPattern(struct Symbol* symbols, enum Pattern pattern, enum Di
 	}
 }
 
-// direction doesn't matter
+/***************************************************************************//**
+ * Searches the symbol list for a container. These are a set of symbols that are
+ * enclosed by an opening symbol and a closing symbol.
+ ******************************************************************************/
 struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, enum SymbolType open, enum SymbolType close)
 {
 	struct Symbol* current = symbols;
@@ -640,6 +639,10 @@ struct Symbol* patternContainer(struct Symbol* symbols, enum SymbolType type, en
 	return symbols;
 }
 
+/***************************************************************************//**
+ * Searches the symbol list for a unary postfix pattern. These are single
+ * operand symbols in which the operator appears after the operand.
+ ******************************************************************************/
 struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction, enum SymbolType type)
 {
 	if (direction == RIGHT)
@@ -687,6 +690,10 @@ struct Symbol* patternUnaryPost(struct Symbol* symbols, enum Direction direction
 	return symbols;
 }
 
+/***************************************************************************//**
+ * Searches the symbol list for a unary prefix pattern. These are single operand
+ * symbols in which the operator appears before the operand.
+ ******************************************************************************/
 struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction, enum SymbolType type)
 {
 	if (direction == RIGHT)
@@ -734,7 +741,10 @@ struct Symbol* patternUnaryPre(struct Symbol* symbols, enum Direction direction,
 	return symbols;
 }
 
-// if left, reverse before processing, then reverse again
+/***************************************************************************//**
+ * Searches the symbol list for a binary pattern. These are symbols in which
+ * there is an operand on both sides.
+ ******************************************************************************/
 struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, enum SymbolType type)
 {
 	struct Symbol* current = symbols;
@@ -786,6 +796,10 @@ struct Symbol* patternBinary(struct Symbol* symbols, enum Direction direction, e
 }
 
 // ignore dir for now
+/***************************************************************************//**
+ * Searches the symbol list for a ternary pattern. The ternary conditional
+ * involves three operands separated by two operators.
+ ******************************************************************************/
 struct Symbol* patternTernary(struct Symbol* symbols, enum Direction direction, enum SymbolType type, enum SymbolType first, enum SymbolType second)
 {/*
 	while (symbols && symbols->next && symbols->next->type == first && symbols->next->next && symbols->next->next->next && symbols->next->next->next->type == second && symbols->next->next->next->next)
@@ -827,3 +841,4 @@ struct Symbol* patternTernary(struct Symbol* symbols, enum Direction direction, 
 	}
 	return symbols;
 }
+

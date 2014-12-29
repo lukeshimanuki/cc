@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file read.c
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Contains a function to load files into memory.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Implementation of the read function.
  *
  * -----------------------------------------------------------------------------
  *
@@ -36,8 +34,8 @@
 #include <string.h>
 
 /***************************************************************************//**
- * The filename is passed as a string, and the buffer containing the
- * contents is returned.
+ * Reads all content from the given stream until an EOF is reached. The data is
+ * stored in a dynamically allocated buffer that is null terminated.
  ******************************************************************************/
 char* read(FILE* file)
 {
@@ -78,3 +76,4 @@ char* read(FILE* file)
 
 	return NULL;
 }
+

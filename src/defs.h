@@ -1,10 +1,8 @@
 /* =============================================================================
  * @file defs.h
  * @author Luke Shimanuki
- * @date 1 Nov 2014
- * @brief Definitions for functions accessed by main.
- *
- * This file is part of MCC.
+ * @date 28 Dec 2014
+ * @brief Definitions for the main function and functions accessed by it.
  *
  * -----------------------------------------------------------------------------
  *
@@ -38,7 +36,7 @@ struct Symbol;
 struct String;
 
 /***************************************************************************//**
- * @brief Loads a file into a buffer.
+ * @brief main function
  *
  * @param argc The number of command line arguments.
  *
@@ -49,41 +47,42 @@ struct String;
 int main(int argc, char** argv);
 
 /***************************************************************************//**
- * @brief Loads a file into a buffer.
+ * @brief reads data from stream
  *
- * @param fileName The path to the file to be read.
+ * @param file The input stream
  *
- * @return A buffer containing the contents of the file.
+ * @return A buffer containing the contents of the stream.
  ******************************************************************************/
 char* read(FILE* file);
 
 /***************************************************************************//**
- * @brief Analyzes the data and organizes it symbolically.
+ * @brief parses data into symbols
  *
  * @param data The buffer of data to be translated into symbols.
  *
- * @return A tree of symbols representing the data
+ * @return A tree of symbols representing the data.
  ******************************************************************************/
 struct Symbol* parse(char* data);
 
 /***************************************************************************//**
- * @brief Converts symbolic structure to assembly.
+ * @brief creates assembly from symbols
  *
- * @param symbols Parsed data to be converted to assembly.
+ * @param symbols Symbolic tree to be converted to assembly.
  *
  * @return A buffer containing the assembly code.
  ******************************************************************************/
 struct String* compile(struct Symbol* symbols);
 
 /***************************************************************************//**
- * @brief Writes data to a file.
+ * @brief writes data to stream
  *
- * @param fileName The path to the file that will be written to.
+ * @param file The output stream.
  *
- * @param data The data that is to be written to the file.
+ * @param data The list of strings that is to be written.
  *
  * @return The number of bytes that were written.
  ******************************************************************************/
 size_t write(FILE* file, struct String* data);
 
 #endif /* __DEFS_H__ */
+
