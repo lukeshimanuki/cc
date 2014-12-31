@@ -4,7 +4,7 @@ Version 0.2
 
 INTRODUCTION
 
-  CC is a c compiler. It converts C code into i386 assembly.
+  CC is a c compiler. It converts C code into i386 assembly with GAS syntax.
 
 WHAT IT SUPPORTS
 
@@ -17,11 +17,12 @@ WHAT IT SUPPORTS
 
 WHAT IT DOES NOT SUPPORT
 
-  structs (but it can use pointers to them)
+  structs (but it can use pointers to objects)
   static typing (everything is an int, even pointers)
   compiler flags (includes, defines, etc)
   comparison
   floating point registers
+  for
   else
   comments
   compound declaration
@@ -38,5 +39,18 @@ USAGE
 
   CC accepts input from stdin and outputs to stdout.
 
-  ./cc < input.c > output.s
+    ./cc < input.c > output.s
+
+  To finish compilation, it will need to be assembled
+
+    as --gstabs -32 output.s -o out.o
+
+  and linked
+
+    ld -o a.out -dynamic-linker /path/to/ld-linux.so.# /path/to/crt1.o \
+	  /path/to/crti.o -lc out.o /path/to/crtn.o
+
+  ld-linux.so.# is usually found in /lib/; crt1.o, crti.o, and crtn.o are
+  usually found in /usr/lib/i386-linux-gnu/. To compile the example program,
+  you may need to modify example/Makefile to fit your computer's structure.
 
